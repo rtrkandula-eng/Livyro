@@ -1,945 +1,592 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Livyro Rentals</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Livyro Rentals</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-  <!-- CSS WILL BE ADDED IN PART 2 -->
-  <style>
-  body {
+<!-- ========================= CSS ========================= -->
+<style>
+* {
     margin: 0;
     padding: 0;
-    font-family: "Poppins", sans-serif;
-    background: #f5f7fa;
-  }
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
 
-  /* HEADER */
-  .header {
-    background: #ffffff;
-    padding: 16px 30px;
+body {
+    background: #fafafa;
+    color: #222;
+}
+
+.primary-btn {
+    background: #4a3aff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.primary-btn:hover {
+    background: #372bdb;
+}
+
+.secondary-btn {
+    background: #e8e8e8;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.secondary-btn:hover {
+    background: #d5d5d5;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.header {
+    width: 100%;
+    padding: 16px 40px;
+    background: white;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
     position: sticky;
     top: 0;
-    z-index: 20;
-  }
+    z-index: 50;
+}
 
-  .logo {
+.logo {
     font-size: 24px;
-    font-weight: 700;
-    color: #6A0DAD;
-    cursor: pointer;
-  }
+    font-weight: 800;
+    color: #4a3aff;
+}
 
-  .nav-center {
-    display: flex;
-    gap: 25px;
-  }
-
-  .nav-link {
-    font-size: 15px;
+.nav-links a {
+    margin: 0 12px;
+    text-decoration: none;
     color: #444;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+    font-weight: 500;
+}
 
-  .nav-link:hover,
-  .nav-link.active {
-    color: #6A0DAD;
-    font-weight: 600;
-  }
+.nav-links a:hover {
+    color: #4a3aff;
+}
 
-  .nav-buttons button {
-    margin-left: 12px;
-    padding: 10px 18px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-  }
-
-  .btn-outline {
-    background: #fff;
-    border: 1px solid #6A0DAD;
-    color: #6A0DAD;
-  }
-
-  .btn-primary {
-    background: #6A0DAD;
-    color: white;
-  }
-
-  header.page-title {
-    background: #6a0dad;
-    padding: 20px;
-    color: white;
-    text-align: center;
-    font-size: 24px;
-    font-weight: 600;
-  }
-
-  .container {
-    max-width: 1100px;
-    margin: 20px auto 40px;
-    padding: 0 10px;
-  }
-
-  /* SEARCH BAR */
-  .search-box {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    margin-bottom: 25px;
-
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 22px;
-    align-items: center;
-  }
-
-  .input-group {
-    position: relative;
+.header-actions {
     display: flex;
     align-items: center;
-    background: #f3f0f8;
-    padding: 10px 14px;
-    border-radius: 50px;
-    border: 1px solid #e0d7f3;
-  }
+    gap: 12px;
+}
 
-  .input-group .icon {
-    font-size: 18px;
-    margin-right: 10px;
-    color: #6a0dad;
-  }
+.profile-container {
+    position: relative;
+    cursor: pointer;
+}
 
-  .input-group input,
-  .input-group select {
-    border: none;
-    background: transparent;
-    outline: none;
-    width: 100%;
-    font-size: 14px;
-    font-family: "Poppins";
-  }
+.profile-icon {
+    width: 32px;
+    height: 32px;
+    fill: #333;
+    transition: 0.2s;
+}
 
-  /* AUTOCOMPLETE DROPDOWN */
-  .suggestions {
+.profile-icon:hover {
+    fill: #4a3aff;
+}
+
+.dropdown {
     position: absolute;
-    top: 48px;
-    left: 0;
+    top: 42px;
     right: 0;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
-    z-index: 10;
-  }
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 160px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    padding: 6px 0;
+    animation: fadeIn 0.15s ease-out;
+}
 
-  .suggestions div {
-    padding: 10px 14px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-  }
-
-  .suggestions div:hover {
-    background: #f3f0f8;
-  }
-
-  .search-btn {
-    background: #6a0dad;
-    color: white;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .search-btn:hover {
-    background: #5800b0;
-    transform: translateY(-2px);
-  }
-
-  /* PROPERTY GRID */
-  .properties {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-  }
-
-  .card {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    transition: 0.25s ease;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-  }
-
-  .card-img {
-    position: relative;
-  }
-
-  .card-img img {
+.dropdown-item {
     width: 100%;
-    height: 200px;
+    padding: 10px 14px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rentals-section {
+    padding: 40px;
+}
+
+.rentals-section h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.property-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 24px;
+}
+
+.property-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: 0.2s;
+}
+
+.property-card:hover {
+    transform: translateY(-4px);
+}
+
+.property-image {
+    width: 100%;
+    height: 180px;
     object-fit: cover;
-  }
+}
 
-  .badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: #6a0dad;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 50px;
-    font-size: 12px;
-    font-weight: 600;
-  }
+.property-info {
+    padding: 16px;
+}
 
-  .card-body {
-    padding: 18px;
-  }
+.property-info h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
 
-  .price {
-    font-size: 22px;
-    font-weight: 700;
-    color: #6a0dad;
-    margin-bottom: 8px;
-  }
-
-  .location {
+.property-info p {
     font-size: 14px;
     color: #555;
-    margin-bottom: 12px;
-  }
+    margin-bottom: 4px;
+}
 
-  .details {
+.card-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 16px;
-  }
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid #eee;
+}
 
-  .details span {
-    background: #f3f0f8;
-    padding: 6px 10px;
-    border-radius: 8px;
-  }
-
-  .view-btn {
-    width: 100%;
-    padding: 12px;
-    background: #6a0dad;
-    color: white;
+.save-btn {
+    background: none;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 22px;
     cursor: pointer;
     transition: 0.2s;
-  }
+}
 
-  .view-btn:hover {
-    background: #5800b0;
-  }
+.save-btn.saved {
+    color: red;
+}
 
-  /* MODALS */
-  .modal {
+.modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.55);
-    display: none;
-    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    display: flex;
     align-items: center;
-    z-index: 50;
-  }
+    justify-content: center;
+    z-index: 200;
+}
 
-  .modal-content {
+.modal-content {
     background: white;
-    padding: 25px;
-    width: 380px;
-    max-width: 90%;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    animation: fadeIn 0.25s ease;
-  }
+    padding: 24px;
+    width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    animation: fadeIn 0.2s ease-out;
+}
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+.modal-content h3 {
+    margin-bottom: 16px;
+}
 
-  .modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: #2b2b2b;
-  }
-
-  .modal-content input,
-  .modal-content select,
-  .modal-content textarea {
+.modal-content input,
+.modal-content textarea {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     margin-bottom: 12px;
-    border-radius: 10px;
+    border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 14px;
-    font-family: inherit;
-  }
+}
 
-  .modal-close {
-    text-align: right;
-    cursor: pointer;
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
+.modal-content textarea {
+    height: 80px;
+    resize: none;
+}
 
-  .modal-primary-btn {
-    background: #6A0DAD;
-    color: white;
-    padding: 12px;
-    width: 100%;
-    border-radius: 10px;
-    cursor: pointer;
-    border: none;
-    font-size: 15px;
-    font-weight: 600;
-  }
-
-  .modal-link {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 14px;
-  }
-
-  .modal-link span {
-    color: #6A0DAD;
-    cursor: pointer;
-    font-weight: 500;
-  }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #6A0DAD;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    display: none;
-    font-size: 14px;
-    z-index: 60;
-  }
+#savedHomesList,
+#myListingsList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="logo" onclick="window.location.href='index.html'">LIVYRO</div>
+<!-- ========================= HEADER ========================= -->
+<header class="header">
+    <div class="logo">LIVYRO</div>
 
-  <div class="nav-center">
-    <span class="nav-link active">Rentals</span>
-    <span class="nav-link" onclick="openServicesModal()">Services</span>
-  </div>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/rentals">Rentals</a>
+        <a href="/services">Services</a>
+    </nav>
 
-  <div class="nav-buttons" id="navButtons"></div>
+    <div class="header-actions">
+
+        <button id="savedHomesBtn" class="icon-btn hidden">❤️</button>
+
+        <button id="addPropertyBtn" class="primary-btn hidden">+ Add Property</button>
+
+        <div class="profile-container hidden" id="profileContainer">
+            <svg id="profileIcon" class="profile-icon" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="#333"
+                    d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+            </svg>
+
+            <div id="profileDropdown" class="dropdown hidden">
+                <button id="dropdownSavedHomes" class="dropdown-item hidden">Saved Homes</button>
+                <button id="dropdownMyListings" class="dropdown-item hidden">My Listings</button>
+                <button id="dropdownAddProperty" class="dropdown-item hidden">Add Property</button>
+                <button id="dropdownLogout" class="dropdown-item">Logout</button>
+            </div>
+        </div>
+
+        <button id="loginBtn" class="secondary-btn">Login</button>
+        <button id="signupBtn" class="primary-btn">Sign Up</button>
+    </div>
+</header>
+
+<!-- ========================= PROPERTY LIST ========================= -->
+<section class="rentals-section">
+    <h2>Available Rentals</h2>
+    <div id="propertyList" class="property-list"></div>
+</section>
+
+<!-- ========================= MODALS ========================= -->
+<div id="addPropertyModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Add Property</h3>
+
+        <input id="propTitle" placeholder="Title" />
+        <input id="propCity" placeholder="City" />
+        <input id="propBHK" type="number" placeholder="BHK" />
+        <input id="propRent" type="number" placeholder="Rent (₹)" />
+        <input id="propSize" type="number" placeholder="Size (sqft)" />
+        <input id="propFurnishing" placeholder="Furnishing" />
+        <textarea id="propDescription" placeholder="Description"></textarea>
+        <input id="propAmenities" placeholder="Amenities (comma separated)" />
+        <input id="propImages" placeholder="Image URLs (comma separated)" />
+
+        <button id="submitProperty" class="primary-btn">Submit</button>
+        <button class="secondary-btn closeModal">Cancel</button>
+    </div>
 </div>
 
-<header class="page-title">Find Your Perfect Rental Home</header>
-
-<div class="container">
-
-  <!-- SEARCH BAR -->
-  <div class="search-box">
-
-    <div class="input-group">
-      <span class="icon">📍</span>
-      <input type="text" id="searchCity" placeholder="Search city (All India)" onkeyup="showCitySuggestions()">
-      <div id="citySuggestions" class="suggestions"></div>
+<div id="savedHomesModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Saved Homes</h3>
+        <div id="savedHomesList"></div>
+        <button class="secondary-btn closeModal">Close</button>
     </div>
-
-    <div class="input-group">
-      <span class="icon">🏠</span>
-      <select id="filterType">
-        <option value="">Property Type</option>
-        <option value="Apartment">Apartment</option>
-        <option value="Villa">Villa</option>
-        <option value="Independent House">Independent House</option>
-        <option value="Studio">Studio</option>
-        <option value="Penthouse">Penthouse</option>
-      </select>
-    </div>
-
-    <div class="input-group">
-      <span class="icon">🛏️</span>
-      <select id="filterBHK">
-        <option value="">BHK</option>
-        <option value="1 BHK">1 BHK</option>
-        <option value="2 BHK">2 BHK</option>
-        <option value="3 BHK">3 BHK</option>
-        <option value="4 BHK">4 BHK</option>
-        <option value="5 BHK">5 BHK</option>
-      </select>
-    </div>
-
-    <div class="input-group">
-      <span class="icon">💰</span>
-      <select id="filterBudget">
-        <option value="">Budget</option>
-        <option value="1000">₹1,000+</option>
-        <option value="5000">₹5,000+</option>
-        <option value="10000">₹10,000+</option>
-        <option value="20000">₹20,000+</option>
-        <option value="50000">₹50,000+</option>
-        <option value="100000">₹1,00,000+</option>
-        <option value="200000">₹2,00,000+</option>
-        <option value="500000">₹5,00,000+</option>
-      </select>
-    </div>
-
-    <div class="input-group">
-      <span class="icon">🛋️</span>
-      <select id="filterFurnishing">
-        <option value="">Furnishing</option>
-        <option value="Fully Furnished">Fully Furnished</option>
-        <option value="Semi Furnished">Semi Furnished</option>
-        <option value="Unfurnished">Unfurnished</option>
-      </select>
-    </div>
-
-    <button class="search-btn" onclick="applyFilters()">Search</button>
-
-  </div>
-
-  <!-- PROPERTY LIST -->
-  <div id="properties" class="properties"></div>
-
 </div>
 
-<!-- LOGIN MODAL -->
-<div class="modal" id="loginModal">
-  <div class="modal-content">
-    <div class="modal-close" onclick="closeLoginModal()">✖</div>
-    <h3>Owner Login</h3>
-
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Password">
-
-    <button class="modal-primary-btn" onclick="login()">Login</button>
-
-    <div class="modal-link">
-      New owner? <span onclick="switchToSignup()">Create account</span>
+<div id="myListingsModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>My Listings</h3>
+        <div id="myListingsList"></div>
+        <button class="secondary-btn closeModal">Close</button>
     </div>
-
-    <p id="loginStatus"></p>
-  </div>
 </div>
 
-<!-- SIGNUP MODAL -->
-<div class="modal" id="signupModal">
-  <div class="modal-content">
-    <div class="modal-close" onclick="closeSignupModal()">✖</div>
-    <h3>Owner Sign Up</h3>
-
-    <input type="email" id="signupEmail" placeholder="Email">
-    <input type="password" id="signupPassword" placeholder="Password">
-
-    <button class="modal-primary-btn" onclick="signup()">Create Account</button>
-
-    <div class="modal-link">
-      Already have an account? <span onclick="switchToLogin()">Login</span>
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Login</h3>
+        <input id="loginEmail" placeholder="Email" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button id="loginSubmit" class="primary-btn">Login</button>
+        <button class="secondary-btn closeModal">Cancel</button>
     </div>
-
-    <p id="signupStatus"></p>
-  </div>
 </div>
 
-<!-- ADD PROPERTY MODAL -->
-<div class="modal" id="addModal">
-  <div class="modal-content">
-    <div class="modal-close" onclick="closeAddModal()">✖</div>
-
-    <h3>Add New Property</h3>
-
-    <input type="text" id="addCity" placeholder="City">
-    <select id="addBHK">
-      <option value="">BHK</option>
-      <option value="1">1 BHK</option>
-      <option value="2">2 BHK</option>
-      <option value="3">3 BHK</option>
-      <option value="4">4 BHK+</option>
-    </select>
-
-    <input type="number" id="addRent" placeholder="Rent (₹)">
-    <input type="number" id="addSize" placeholder="Size (sqft)">
-
-    <select id="addFurnishing">
-      <option value="">Furnishing</option>
-      <option>Fully Furnished</option>
-      <option>Semi Furnished</option>
-      <option>Unfurnished</option>
-    </select>
-
-    <textarea id="addDescription" placeholder="Description"></textarea>
-
-    <input type="file" id="addImageUpload" accept="image/*">
-    <img id="addPreview" style="width:100%;border-radius:8px;margin-top:10px;display:none;">
-
-    <button class="modal-primary-btn" onclick="addProperty()">Add Property</button>
-    <p id="addStatus"></p>
-  </div>
+<div id="signupModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Sign Up</h3>
+        <input id="signupEmail" placeholder="Email" />
+        <input id="signupPassword" type="password" placeholder="Password" />
+        <button id="signupSubmit" class="primary-btn">Sign Up</button>
+        <button class="secondary-btn closeModal">Cancel</button>
+    </div>
 </div>
 
-<!-- SERVICES COMING SOON MODAL -->
-<div class="modal" id="servicesModal">
-  <div class="modal-content">
-    <div class="modal-close" onclick="closeServicesModal()">✖</div>
+<!-- ========================= JS ========================= -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <h3 style="color:#6A0DAD; margin-bottom:10px;">Services – Coming Soon</h3>
-    <p style="color:#555; line-height:1.5;">
-      We’re building premium home services for Livyro:
-      <br><br>
-      • Packers & Movers<br>
-      • Cleaning Services<br>
-      • Painting & Interiors<br>
-      • Home Repairs<br>
-      • And more…
-      <br><br>
-      Stay tuned — launching soon.
-    </p>
-
-    <button class="modal-primary-btn" onclick="closeServicesModal()">
-      Okay
-    </button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- JS WILL BE ADDED IN PART 3 -->
 <script>
-/* ------------------------------
-   SUPABASE INITIALIZATION
------------------------------- */
-const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+const supabase = supabase.createClient(
+  "https://ehzwbbypvccuhfhvukpp.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI"
+);
 
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-let allProperties = [];
+/* ========================= SESSION HANDLING ========================= */
 let currentUser = null;
+let currentRole = null;
 
-/* ------------------------------
-   TOAST NOTIFICATION
------------------------------- */
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.display = "block";
-  setTimeout(() => (t.style.display = "none"), 2500);
-}
+async function checkSession() {
+    const { data } = await supabase.auth.getSession();
+    currentUser = data.session?.user || null;
 
-/* ------------------------------
-   CITY AUTOCOMPLETE
------------------------------- */
-const indianCities = [
-  "Hyderabad", "Bengaluru", "Mumbai", "Delhi", "Chennai", "Pune",
-  "Kolkata", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Indore",
-  "Kochi", "Coimbatore", "Nagpur", "Visakhapatnam", "Bhopal"
-];
+    if (currentUser) {
+        document.getElementById("loginBtn").classList.add("hidden");
+        document.getElementById("signupBtn").classList.add("hidden");
+        document.getElementById("profileContainer").classList.remove("hidden");
 
-function showCitySuggestions() {
-  let input = document.getElementById("searchCity").value.toLowerCase();
-  let box = document.getElementById("citySuggestions");
-
-  if (input.length < 1) {
-    box.style.display = "none";
-    return;
-  }
-
-  let matches = indianCities.filter(city =>
-    city.toLowerCase().startsWith(input)
-  );
-
-  if (matches.length === 0) {
-    box.style.display = "none";
-    return;
-  }
-
-  box.innerHTML = "";
-  matches.forEach(city => {
-    let div = document.createElement("div");
-    div.textContent = city;
-    div.onclick = () => {
-      document.getElementById("searchCity").value = city;
-      box.style.display = "none";
-    };
-    box.appendChild(div);
-  });
-
-  box.style.display = "block";
-}
-
-/* ------------------------------
-   LOAD PROPERTIES
------------------------------- */
-async function loadProperties() {
-  const { data, error } = await supabaseClient
-    .from("properties")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error loading properties:", error);
-    return;
-  }
-
-  allProperties = data || [];
-  renderProperties(allProperties);
-}
-
-/* ------------------------------
-   RENDER PROPERTY CARDS
------------------------------- */
-function renderProperties(list) {
-  const container = document.getElementById("properties");
-  container.innerHTML = "";
-
-  if (!list || list.length === 0) {
-    container.innerHTML = "<p>No properties found.</p>";
-    return;
-  }
-
-  list.forEach((p) => {
-    container.innerHTML += `
-      <div class="card">
-        <div class="card-img">
-          <img src="${(p.images && p.images[0]) || p.image_url || 'https://via.placeholder.com/400'}" alt="Property">
-          <span class="badge">Verified</span>
-        </div>
-        <div class="card-body">
-          <div class="price">₹${p.price || p.rent || 0}</div>
-          <div class="location">📍 ${(p.city || "")}${p.state ? ", " + p.state : ""}</div>
-          <div class="details">
-            <span>🛏️ ${p.bhk || "N/A"}</span>
-            <span>🏠 ${p.type || "Property"}</span>
-            <span>🛋️ ${p.furnishing || "N/A"}</span>
-          </div>
-          <button class="view-btn">View Details</button>
-        </div>
-      </div>
-    `;
-  });
-}
-
-/* ------------------------------
-   FILTERS
------------------------------- */
-function applyFilters() {
-  let city = document.getElementById("searchCity").value.toLowerCase();
-  let type = document.getElementById("filterType").value;
-  let bhk = document.getElementById("filterBHK").value;
-  let budget = document.getElementById("filterBudget").value;
-  let furnishing = document.getElementById("filterFurnishing").value;
-
-  let filtered = allProperties.filter((p) => {
-    const price = p.price || p.rent || 0;
-    const bhkValue =
-      p.bhk && typeof p.bhk === "string"
-        ? p.bhk
-        : p.bhk
-        ? p.bhk + " BHK"
-        : "";
-
-    return (
-      (city === "" || (p.city || "").toLowerCase().startsWith(city)) &&
-      (type === "" || p.type === type) &&
-      (bhk === "" || bhkValue === bhk) &&
-      (budget === "" || price >= parseInt(budget)) &&
-      (furnishing === "" || p.furnishing === furnishing)
-    );
-  });
-
-  renderProperties(filtered);
-}
-
-/* ------------------------------
-   HEADER BUTTONS (LOGIN STATE)
------------------------------- */
-async function updateHeaderButtons() {
-  const nav = document.getElementById("navButtons");
-  const { data } = await supabaseClient.auth.getSession();
-  currentUser = data.session ? data.session.user : null;
-
-  if (!currentUser) {
-    nav.innerHTML = `
-      <button class="btn-outline" onclick="openLoginModal()">Login</button>
-      <button class="btn-primary" onclick="openSignupModal()">Sign Up</button>
-    `;
-  } else {
-    const emailVerified =
-      currentUser.email_confirmed_at || currentUser.confirmed_at;
-
-    if (emailVerified) {
-      nav.innerHTML = `
-        <button class="btn-primary" onclick="openAddModal()">+ Add Property</button>
-        <button class="btn-outline" onclick="logout()">Logout</button>
-      `;
-    } else {
-      nav.innerHTML = `
-        <button class="btn-outline" disabled>Email not verified</button>
-        <button class="btn-outline" onclick="logout()">Logout</button>
-      `;
+        await loadUserRole();
     }
-  }
 }
 
-/* ------------------------------
-   AUTH: LOGIN / SIGNUP / LOGOUT
------------------------------- */
-function openLoginModal() {
-  document.getElementById("loginModal").style.display = "flex";
-}
-function closeLoginModal() {
-  document.getElementById("loginModal").style.display = "none";
-}
-function openSignupModal() {
-  document.getElementById("signupModal").style.display = "flex";
-}
-function closeSignupModal() {
-  document.getElementById("signupModal").style.display = "none";
-}
-function switchToSignup() {
-  closeLoginModal();
-  openSignupModal();
-}
-function switchToLogin() {
-  closeSignupModal();
-  openLoginModal();
+async function loadUserRole() {
+    const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
+
+    currentRole = data?.role || null;
+
+    updateHeaderUI();
 }
 
+function updateHeaderUI() {
+    const savedBtn = document.getElementById("savedHomesBtn");
+    const addBtn = document.getElementById("addPropertyBtn");
+
+    const ddSaved = document.getElementById("dropdownSavedHomes");
+    const ddListings = document.getElementById("dropdownMyListings");
+    const ddAdd = document.getElementById("dropdownAddProperty");
+
+    savedBtn.classList.add("hidden");
+    addBtn.classList.add("hidden");
+    ddSaved.classList.add("hidden");
+    ddListings.classList.add("hidden");
+    ddAdd.classList.add("hidden");
+
+    if (currentRole === "tenant") {
+        savedBtn.classList.remove("hidden");
+        ddSaved.classList.remove("hidden");
+    }
+
+    if (currentRole === "owner") {
+        addBtn.classList.remove("hidden");
+        ddListings.classList.remove("hidden");
+        ddAdd.classList.remove("hidden");
+    }
+}
+
+/* ========================= LOAD PROPERTIES ========================= */
+async function loadProperties() {
+    const { data } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
+
+    const container = document.getElementById("propertyList");
+    container.innerHTML = "";
+
+    data.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "property-card";
+
+        const img = p.images?.[0] || "https://via.placeholder.com/400";
+
+        card.innerHTML = `
+            <img src="${img}" class="property-image" />
+            <div class="property-info">
+                <h3>${p.title}</h3>
+                <p>${p.city}</p>
+                <p>${p.bhk} BHK • ${p.size} sqft</p>
+                <p>₹${p.rent}/month</p>
+            </div>
+            <div class="card-actions">
+                <button class="save-btn" onclick="saveHome('${p.id}')">❤️</button>
+                <button class="primary-btn" onclick="contactOwner('${p.owner_id}')">Contact</button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+/* ========================= SAVE HOME ========================= */
+async function saveHome(propertyId) {
+    if (!currentUser) {
+        openModal("loginModal");
+        return;
+    }
+
+    if (currentRole !== "tenant") {
+        await supabase.from("profiles").update({ role: "tenant" }).eq("id", currentUser.id);
+        currentRole = "tenant";
+        updateHeaderUI();
+    }
+
+    await supabase.from("saved_homes").insert({
+        tenant_id: currentUser.id,
+        property_id: propertyId
+    });
+
+    alert("Home saved!");
+}
+
+/* ========================= LOAD SAVED HOMES ========================= */
+async function loadSavedHomes() {
+    const { data } = await supabase
+        .from("saved_homes")
+        .select("property_id, properties(*)")
+        .eq("tenant_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+    const list = document.getElementById("savedHomesList");
+    list.innerHTML = "";
+
+    data.forEach((item) => {
+        const p = item.properties;
+        const img = p.images?.[0] || "https://via.placeholder.com/400";
+
+        list.innerHTML += `
+            <div style="margin-bottom: 16px;">
+                <img src="${img}" style="width:100%; border-radius:8px;" />
+                <h4>${p.title}</h4>
+                <p>${p.city}</p>
+                <p>${p.bhk} BHK • ₹${p.rent}</p>
+            </div>
+        `;
+    });
+}
+
+/* ========================= MY LISTINGS ========================= */
+async function loadMyListings() {
+    const { data } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("owner_id", currentUser.id);
+
+    const list = document.getElementById("myListingsList");
+    list.innerHTML = "";
+
+    data.forEach((p) => {
+        const img = p.images?.[0] || "https://via.placeholder.com/400";
+
+        list.innerHTML += `
+            <div style="margin-bottom: 16px;">
+                <img src="${img}" style="width:100%; border-radius:8px;" />
+                <h4>${p.title}</h4>
+                <p>${p.city}</p>
+                <p>${p.bhk} BHK • ₹${p.rent}</p>
+            </div>
+        `;
+    });
+}
+
+/* ========================= ADD PROPERTY ========================= */
+async function addProperty() {
+    if (currentRole !== "owner") {
+        await supabase.from("profiles").update({ role: "owner" }).eq("id", currentUser.id);
+        currentRole = "owner";
+        updateHeaderUI();
+    }
+
+    const title = document.getElementById("propTitle").value;
+    const city = document.getElementById("propCity").value;
+    const bhk = document.getElementById("propBHK").value;
+    const rent = document.getElementById("propRent").value;
+    const size = document.getElementById("propSize").value;
+    const furnishing = document.getElementById("propFurnishing").value;
+    const description = document.getElementById("propDescription").value;
+    const amenities = document.getElementById("propAmenities").value.split(",");
+    const images = document.getElementById("propImages").value.split(",");
+
+    await supabase.from("properties").insert({
+        owner_id: currentUser.id,
+        title,
+        city,
+        bhk,
+        rent,
+        size,
+        furnishing,
+        description,
+        amenities,
+        images
+    });
+
+    alert("Property added!");
+    closeAllModals();
+    loadProperties();
+}
+
+/* ========================= LOGIN / SIGNUP ========================= */
 async function login() {
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-  const status = document.getElementById("loginStatus");
-  status.textContent = "Logging in...";
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
 
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    status.textContent = "Invalid login";
-  } else {
-    status.textContent = "";
-    closeLoginModal();
-    showToast("Logged in");
-    await updateHeaderButtons();
-  }
+    if (error) return alert(error.message);
+
+    closeAllModals();
+    checkSession();
 }
 
 async function signup() {
-  const email = document.getElementById("signupEmail").value;
-  const password = document.getElementById("signupPassword").value;
-  const status = document.getElementById("signupStatus");
-  status.textContent = "Creating account...";
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
 
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: "https://livyro.com/email-verified.html",
-    },
-  });
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-  if (error) {
-    status.textContent = "Error: " + error.message;
-  } else {
-    status.textContent = "Check your email to verify your account.";
-  }
-}
+    if (error) return alert(error.message);
 
-async function logout() {
-  await supabaseClient.auth.signOut();
-  currentUser = null;
-  await updateHeaderButtons();
-  showToast("Logged out");
-}
+    await supabase.from("profiles").insert({
+        id: data.user.id,
+        email,
+        role: null
+    });
 
-/* ------------------------------
-   ADD PROPERTY MODAL
------------------------------- */
-function openAddModal() {
-  if (!currentUser) {
-    showToast("Please login first");
-    return;
-  }
-
-  const emailVerified =
-    currentUser.email_confirmed_at || currentUser.confirmed_at;
-
-  if (!emailVerified) {
-    showToast("Please verify your email to add properties");
-    return;
-  }
-
-  document.getElementById("addCity").value = "";
-  document.getElementById("addBHK").value = "";
-  document.getElementById("addRent").value = "";
-  document.getElementById("addSize").value = "";
-  document.getElementById("addFurnishing").value = "";
-  document.getElementById("addDescription").value = "";
-  document.getElementById("addImageUpload").value = "";
-  document.getElementById("addPreview").style.display = "none";
-  document.getElementById("addStatus").textContent = "";
-
-  document.getElementById("addModal").style.display = "flex";
-}
-
-function closeAddModal() {
-  document.getElementById("addModal").style.display = "none";
-}
-
-document
-  .getElementById("addImageUpload")
-  .addEventListener("change", function () {
-    const file = this.files[0];
-    const preview = document.getElementById("addPreview");
-    if (file) {
-      preview.src = URL.createObjectURL(file);
-      preview.style.display = "block";
-    } else {
-      preview.style.display = "none";
-    }
-  });
-
-async function addProperty() {
-  if (!currentUser) {
-    showToast("Please login first");
-    return;
-  }
-
-  const emailVerified =
-    currentUser.email_confirmed_at || currentUser.confirmed_at;
-
-  if (!emailVerified) {
-    showToast("Please verify your email to add properties");
-    return;
-  }
-
-  const city = document.getElementById("addCity").value;
-  const bhk = parseInt(document.getElementById("addBHK").value) || null;
-  const rent = parseInt(document.getElementById("addRent").value) || null;
-  const size = parseInt(document.getElementById("addSize").value) || null;
-  const furnishing = document.getElementById("addFurnishing").value;
-  const description = document.getElementById("addDescription").value;
-  const imageFile = document.getElementById("addImageUpload").files[0];
-  const statusText = document.getElementById("addStatus");
-
-  let imageUrl = null;
-
-  if (imageFile) {
-    statusText.textContent = "Uploading image...";
-    const fileName = `${currentUser.id}-${Date.now()}-${imageFile.name}`;
-    const { error: uploadError } = await supabaseClient.storage
-      .from("property-images")
-      .upload(fileName, imageFile);
-
-    if (!uploadError) {
-      const { data } = supabaseClient.storage
-        .from("property-images")
-        .getPublicUrl(fileName);
-      imageUrl = data.publicUrl;
-    } else {
-      statusText.textContent = "Image upload failed.";
-    }
-  }
-
-  const title = `${bhk || ""} BHK • ${furnishing || ""}`.trim();
-
-  const { error } = await supabaseClient.from("properties").insert({
-    owner_id: currentUser.id,
-    title,
-    city,
-    bhk,
-    rent,
-    size,
-    furnishing,
-    description,
-    amenities: [],
-    images: imageUrl ? [imageUrl] : [],
-  });
-
-  if (error) {
-    statusText.textContent = "Error adding property.";
-  } else {
-    statusText.textContent = "Property added!";
-    showToast("Property added");
-    loadProperties();
-    setTimeout(closeAddModal, 800);
-  }
-}
-
-/* ------------------------------
-   SERVICES COMING SOON MODAL
------------------------------- */
-function openServicesModal() {
-  document.getElementById("servicesModal").style.display = "flex";
-}
-function closeServicesModal() {
-  document.getElementById("servicesModal").style.display = "none";
-}
-
-/* ------------------------------
-   REALTIME UPDATES
------------------------------- */
-supabaseClient
-  .channel("properties-realtime")
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "properties" },
-    () => loadProperties()
-  )
-  .subscribe();
-
-/* ------------------------------
-   INIT
------------------------------- */
-(async () => {
-  await updateHeaderButtons();
-  await loadProperties();
-})();
-</script>
-
-</body>
-</html>
+   
