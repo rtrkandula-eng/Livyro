@@ -319,7 +319,7 @@
 
     let filtered = allProperties.filter((p) => {
       return (
-        (city === "" || (p.city || "").toLowerCase().includes(city)) &&
+        (city === "" || (p.city || "").toLowerCase().startsWith(city)) &&
         (type === "" || p.type === type) &&
         (bhk === "" || p.bhk === bhk) &&
         (budget === "" || (p.price || 0) >= parseInt(budget)) &&
