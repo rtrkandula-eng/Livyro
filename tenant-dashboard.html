@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tenant Dashboard – Livyro</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
 body {
@@ -124,31 +123,39 @@ body {
 </div>
 
 <script>
-// Supabase connection
+// ---------------------------
+// SUPABASE CLIENT
+// ---------------------------
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
 const supabaseAnonKey =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+// ---------------------------
 // SESSION CHECK
+// ---------------------------
 const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
 if (!tenant) {
     window.location.href = "tenant-login.html";
 }
 
+// ---------------------------
 // LOGOUT
+// ---------------------------
 document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("livyro_tenant");
     window.location.href = "tenant-login.html";
 });
 
+// ---------------------------
 // LOAD SAVED HOMES
+// ---------------------------
 async function loadSavedHomes() {
     const grid = document.getElementById("grid");
     grid.innerHTML = "Loading...";
 
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from("saved_homes")
         .select("*, properties(*)")
         .eq("tenant_id", tenant.id)
@@ -182,12 +189,17 @@ async function loadSavedHomes() {
     });
 }
 
+// ---------------------------
 // REMOVE SAVED HOME
+// ---------------------------
 async function removeSaved(id) {
     await supabase.from("saved_homes").delete().eq("id", id);
     loadSavedHomes();
 }
 
+// ---------------------------
+// INITIAL LOAD
+// ---------------------------
 loadSavedHomes();
 </script>
 
