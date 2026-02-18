@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenant Login – Livyro</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+    background: #f5f0ff;
+    font-family: Arial, sans-serif;
+}
+
+.box {
+    max-width: 420px;
+    margin: 80px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.15);
+    border-top: 6px solid #6A0DAD;
+}
+
+.box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #6A0DAD;
+}
+
+.box input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(148,163,184,0.6);
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 999px;
+    background: #6A0DAD;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.link {
+    text-align: center;
+    margin-top: 12px;
+    color: #6A0DAD;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Tenant Login</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button class="btn" id="loginBtn">Login</button>
+
+    <div class="link" id="signupLink">Create an account</div>
+
+    <p id="status" style="text-align:center;margin-top:10px;color:#555;"></p>
+</div>
+
+<script>
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const status = document.getElementById("status");
+
+// LOGIN
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    status.textContent = "Checking...";
+
+    const { data } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("email", email.value)
+        .eq("password", password.value)
+        .maybeSingle();
+
+    if (!data) {
+        status.textContent = "Invalid credentials.";
+        return;
+    }
+
+    localStorage.setItem("livyro_tenant", JSON.stringify(data));
+    window.location.href = "tenant-dashboard.html";
+});
+
+// SIGNUP
+document.getElementById("signupLink").addEventListener("click", async () => {
+    status.textContent = "Creating account...";
+
+    const { data, error } = await supabase
+        .from("tenants")
+        .insert({
+            email: email.value,
+            password: password.value
+        })
+        .select()
+        .maybeSingle();
+
+    if (error) {
+        status.textContent = "Signup failed.";
+    } else {
+        status.textContent = "Account created. Please login.";
+    }
+});
+</script>
+
+</body>
+</html>

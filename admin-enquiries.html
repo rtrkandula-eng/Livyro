@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Enquiries | Livyro</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ff;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #6A0DAD;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 30px 20px;
+}
+
+.sidebar h2 {
+    font-size: 26px;
+    margin-bottom: 30px;
+    font-weight: 800;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 10px;
+    margin-bottom: 10px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.sidebar a:hover,
+.sidebar .active {
+    background: #580b9a;
+}
+
+/* MAIN CONTENT */
+.main {
+    margin-left: 260px;
+    padding: 30px;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-bar h1 {
+    font-size: 32px;
+    color: #4a007e;
+}
+
+.logout-btn {
+    padding: 10px 18px;
+    background: #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* FILTER */
+.filter-box {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-box select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    font-size: 14px;
+}
+
+/* ENQUIRY GRID */
+.enquiry-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+.enquiry-card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.12);
+    border-left: 6px solid #6A0DAD;
+}
+
+.enquiry-card h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #6A0DAD;
+}
+
+.enquiry-card p {
+    margin: 6px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.btn-delete {
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    background: #ff4d4d;
+    color: #fff;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>Livyro Admin</h2>
+
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin-properties.html">Properties</a>
+    <a href="admin-owners.html">Owners</a>
+    <a href="admin-enquiries.html" class="active">Enquiries</a>
+    <a href="#" id="logoutBtn">Logout</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <div class="top-bar">
+        <h1>Manage Enquiries</h1>
+    </div>
+
+    <div class="filter-box">
+        <select id="propertyFilter">
+            <option value="">Filter by Property</option>
+        </select>
+    </div>
+
+    <div id="enquiryGrid" class="enquiry-grid"></div>
+
+</div>
+
+<script>
+// Supabase connection
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+// SESSION CHECK
+const admin = JSON.parse(localStorage.getItem("livyro_admin"));
+if (!admin) {
+    window.location.href = "admin-login.html";
+}
+
+// LOGOUT
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("livyro_admin");
+    window.location.href = "admin-login.html";
+});
+
+// LOAD PROPERTY FILTER OPTIONS
+async function loadPropertyFilter() {
+    const filter = document.getElementById("propertyFilter");
+
+    const { data, error } = await supabase
+        .from("properties")
+        .select("id, title");
+
+    if (data) {
+        data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.title;
+            filter.appendChild(opt);
+        });
+    }
+}
+
+// LOAD ENQUIRIES
+async function loadEnquiries() {
+    const grid = document.getElementById("enquiryGrid");
+    grid.innerHTML = "Loading...";
+
+    const selectedProperty = document.getElementById("propertyFilter").value;
+
+    let query = supabase
+        .from("enquiries")
+        .select("*, properties(title, city)");
+
+    if (selectedProperty) {
+        query = query.eq("property_id", selectedProperty);
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+        grid.innerHTML = "Error loading enquiries.";
+        return;
+    }
+
+    if (!data.length) {
+        grid.innerHTML = "<p>No enquiries found.</p>";
+        return;
+    }
+
+    grid.innerHTML = "";
+
+    data.forEach(e => {
+        const card = document.createElement("div");
+        card.className = "enquiry-card";
+
+        card.innerHTML = `
+            <h3>${e.name}</h3>
+            <p><b>Email:</b> ${e.email}</p>
+            <p><b>Phone:</b> ${e.phone}</p>
+            <p><b>Message:</b> ${e.message || "No message"}</p>
+            <p><b>Property:</b> ${e.properties?.title || "Unknown"}</p>
+            <p><b>City:</b> ${e.properties?.city || "-"}</p>
+            <button class="btn-delete" onclick="deleteEnquiry('${e.id}')">Delete</button>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+// DELETE ENQUIRY
+async function deleteEnquiry(id) {
+    await supabase.from("enquiries").delete().eq("id", id);
+    loadEnquiries();
+}
+
+// FILTER CHANGE
+document.getElementById("propertyFilter").addEventListener("change", loadEnquiries);
+
+// INIT
+loadPropertyFilter();
+loadEnquiries();
+</script>
+
+</body>
+</html>

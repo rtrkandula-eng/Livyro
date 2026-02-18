@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenant Dashboard – Livyro</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ff;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #6A0DAD;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 30px 20px;
+}
+
+.sidebar h2 {
+    font-size: 26px;
+    margin-bottom: 30px;
+    font-weight: 800;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 10px;
+    margin-bottom: 10px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.sidebar a:hover,
+.sidebar .active {
+    background: #580b9a;
+}
+
+/* MAIN CONTENT */
+.main {
+    margin-left: 260px;
+    padding: 30px;
+}
+
+.top-bar h1 {
+    font-size: 32px;
+    color: #4a007e;
+}
+
+/* SAVED HOMES GRID */
+.grid {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 22px;
+}
+
+.card {
+    background: #fff;
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.12);
+}
+
+.card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.card h3 {
+    margin: 8px 0 4px;
+    color: #6A0DAD;
+}
+
+.card p {
+    margin: 4px 0;
+    color: #555;
+}
+
+.btn-remove {
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    background: #ff4d4d;
+    color: #fff;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>Livyro Tenant</h2>
+
+    <a href="tenant-dashboard.html" class="active">Saved Homes</a>
+    <a href="#" id="logoutBtn">Logout</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <div class="top-bar">
+        <h1>Saved Homes</h1>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+</div>
+
+<script>
+// Supabase connection
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+// SESSION CHECK
+const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
+if (!tenant) {
+    window.location.href = "tenant-login.html";
+}
+
+// LOGOUT
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("livyro_tenant");
+    window.location.href = "tenant-login.html";
+});
+
+// LOAD SAVED HOMES
+async function loadSavedHomes() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "Loading...";
+
+    const { data, error } = await supabase
+        .from("saved_homes")
+        .select("*, properties(*)")
+        .eq("tenant_id", tenant.id)
+        .order("created_at", { ascending: false });
+
+    if (!data || !data.length) {
+        grid.innerHTML = "<p>You have no saved homes.</p>";
+        return;
+    }
+
+    grid.innerHTML = "";
+
+    data.forEach(item => {
+        const p = item.properties;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = p.images?.[0] || "https://via.placeholder.com/300";
+
+        card.innerHTML = `
+            <img src="${img}">
+            <h3>${p.title}</h3>
+            <p>${p.city} • ${p.size} sqft</p>
+            <p>₹${p.rent} / month</p>
+            <a href="property-details.html?id=${p.id}" style="color:#6A0DAD;font-weight:bold;">View Details</a>
+            <button class="btn-remove" onclick="removeSaved('${item.id}')">Remove</button>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+// REMOVE SAVED HOME
+async function removeSaved(id) {
+    await supabase.from("saved_homes").delete().eq("id", id);
+    loadSavedHomes();
+}
+
+loadSavedHomes();
+</script>
+
+</body>
+</html>

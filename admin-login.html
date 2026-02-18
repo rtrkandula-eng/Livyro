@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login – Livyro</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+    background: #f5f0ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.login-box {
+    max-width: 420px;
+    margin: 80px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.15);
+    border-top: 6px solid #6A0DAD;
+}
+
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #6A0DAD;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(148,163,184,0.6);
+    font-size: 15px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 999px;
+    background: #6A0DAD;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: #580b9a;
+}
+
+.status {
+    text-align: center;
+    margin-top: 12px;
+    color: #555;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+    <h2>Admin Login</h2>
+
+    <input type="email" id="email" placeholder="Admin Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button class="btn-primary" id="loginBtn">Login</button>
+
+    <p id="status" class="status"></p>
+</div>
+
+<script>
+// Supabase connection
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+// Elements
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const status = document.getElementById("status");
+
+// LOGIN HANDLER
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    status.textContent = "Checking credentials...";
+
+    const { data, error } = await supabase
+        .from("admins")
+        .select("*")
+        .eq("email", email.value)
+        .eq("password", password.value)
+        .maybeSingle();
+
+    if (!data) {
+        status.textContent = "Invalid admin credentials.";
+        return;
+    }
+
+    // Save admin session
+    localStorage.setItem("livyro_admin", JSON.stringify(data));
+
+    status.textContent = "Login successful!";
+    setTimeout(() => {
+        window.location.href = "admin-dashboard.html";
+    }, 500);
+});
+</script>
+
+</body>
+</html>
