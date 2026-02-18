@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tenant Login – Livyro</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
 body {
@@ -71,17 +70,25 @@ body {
 </div>
 
 <script>
+// ---------------------------
+// SUPABASE CLIENT
+// ---------------------------
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
 const supabaseAnonKey =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+// ---------------------------
+// ELEMENTS
+// ---------------------------
 const email = document.getElementById("email");
 const password = document.getElementById("password");
 const status = document.getElementById("status");
 
+// ---------------------------
 // LOGIN
+// ---------------------------
 document.getElementById("loginBtn").addEventListener("click", async () => {
     status.textContent = "Checking...";
 
@@ -101,7 +108,9 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     window.location.href = "tenant-dashboard.html";
 });
 
+// ---------------------------
 // SIGNUP
+// ---------------------------
 document.getElementById("signupLink").addEventListener("click", async () => {
     status.textContent = "Creating account...";
 
