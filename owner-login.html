@@ -1,120 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Owner Login – Livyro</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <title>Owner Login – Livyro</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-<style>
-.login-box {
-    max-width: 420px;
-    margin: 80px auto;
-    padding: 30px;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: var(--shadow-soft);
-}
-.login-box h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.login-box input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(148,163,184,0.6);
-}
-.btn-primary {
-    width: 100%;
-    padding: 12px;
-    border-radius: 999px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-.link {
-    text-align: center;
-    margin-top: 12px;
-    color: var(--primary);
-    cursor: pointer;
-}
-</style>
+  <style>
+    body {
+      background: #f8f8f8;
+      font-family: Poppins, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      width: 350px;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: #6A0DAD;
+      color: white;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .link a {
+      color: #6A0DAD;
+      text-decoration: none;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="login-box">
-    <h2>Owner Login</h2>
+<div class="box">
+  <h2>Owner Login</h2>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
 
-    <button class="btn-primary" id="loginBtn">Login</button>
+  <button class="btn-primary" onclick="login()">Login</button>
 
-    <div class="link" id="signupLink">Create an account</div>
-    <div class="link" id="resetLink">Forgot password?</div>
+  <div class="link">
+    New owner? <a href="owner-register.html">Create account</a>
+  </div>
 
-    <p id="status" style="text-align:center;margin-top:10px;color:var(--muted);"></p>
+  <p id="status"></p>
 </div>
 
 <script>
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+const supabaseAnonKey = "YOUR_KEY";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const signupLink = document.getElementById("signupLink");
-const resetLink = document.getElementById("resetLink");
-const status = document.getElementById("status");
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-// LOGIN
-loginBtn.addEventListener("click", async () => {
-    status.textContent = "Checking...";
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.value,
-        password: password.value
-    });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-        status.textContent = "Invalid email or password.";
-    } else {
-        status.textContent = "Login successful!";
-        window.location.href = "owner-dashboard.html";
-    }
-});
-
-// SIGNUP
-signupLink.addEventListener("click", async () => {
-    status.textContent = "Creating account...";
-    const { data, error } = await supabase.auth.signUp({
-        email: email.value,
-        password: password.value
-    });
-
-    if (error) {
-        status.textContent = "Signup failed.";
-    } else {
-        status.textContent = "Account created. Please login.";
-    }
-});
-
-// RESET PASSWORD
-resetLink.addEventListener("click", async () => {
-    status.textContent = "Sending reset email...";
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email.value);
-
-    if (error) {
-        status.textContent = "Error sending reset email.";
-    } else {
-        status.textContent = "Reset email sent.";
-    }
-});
+  if (error) {
+    document.getElementById("status").textContent = "Invalid login";
+  } else {
+    window.location.href = "owner-dashboard.html";
+  }
+}
 </script>
 
 </body>
