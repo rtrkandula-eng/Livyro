@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Livyro Rentals</title>
 
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -17,7 +16,7 @@
     }
 
     header {
-      background: #1a73e8;
+      background: #6a0dad;
       padding: 20px;
       color: white;
       text-align: center;
@@ -27,10 +26,46 @@
 
     .container {
       max-width: 1100px;
-      margin: 30px auto;
+      margin: 20px auto;
       padding: 10px;
     }
 
+    /* Search Bar */
+    .search-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    select, input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    button {
+      padding: 12px;
+      background: #6a0dad;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #5800b0;
+    }
+
+    /* Property Cards */
     .properties {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -62,7 +97,7 @@
     .price {
       font-size: 20px;
       font-weight: 600;
-      color: #1a73e8;
+      color: #6a0dad;
     }
 
     .location {
@@ -76,15 +111,6 @@
       font-size: 14px;
       color: #333;
     }
-
-    .flash-update {
-      animation: flash 0.4s ease;
-    }
-
-    @keyframes flash {
-      0% { background: #fff3cd; }
-      100% { background: white; }
-    }
   </style>
 </head>
 
@@ -93,64 +119,136 @@
 <header>Livyro Rentals</header>
 
 <div class="container">
+
+  <!-- SEARCH FILTERS -->
+  <div class="search-box">
+
+    <!-- City Search -->
+    <input type="text" id="searchCity" placeholder="Search any city in India...">
+
+    <!-- Property Type -->
+    <select id="filterType">
+      <option value="">Property Type</option>
+      <option value="Apartment">Apartment</option>
+      <option value="Villa">Villa</option>
+      <option value="Independent House">Independent House</option>
+      <option value="Studio">Studio</option>
+      <option value="Penthouse">Penthouse</option>
+    </select>
+
+    <!-- BHK -->
+    <select id="filterBHK">
+      <option value="">BHK</option>
+      <option value="1 BHK">1 BHK</option>
+      <option value="2 BHK">2 BHK</option>
+      <option value="3 BHK">3 BHK</option>
+      <option value="4 BHK">4 BHK</option>
+      <option value="5 BHK">5 BHK</option>
+    </select>
+
+    <!-- Budget -->
+    <select id="filterBudget">
+      <option value="">Budget</option>
+      <option value="1000">₹1,000+</option>
+      <option value="5000">₹5,000+</option>
+      <option value="10000">₹10,000+</option>
+      <option value="20000">₹20,000+</option>
+      <option value="50000">₹50,000+</option>
+      <option value="100000">₹1,00,000+</option>
+      <option value="200000">₹2,00,000+</option>
+      <option value="500000">₹5,00,000+</option>
+    </select>
+
+    <!-- Furnishing -->
+    <select id="filterFurnishing">
+      <option value="">Furnishing</option>
+      <option value="Fully Furnished">Fully Furnished</option>
+      <option value="Semi Furnished">Semi Furnished</option>
+      <option value="Unfurnished">Unfurnished</option>
+    </select>
+
+    <button onclick="applyFilters()">Search</button>
+  </div>
+
+  <!-- PROPERTY LIST -->
   <div id="properties" class="properties"></div>
+
 </div>
 
-<!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // 1. Connect to Supabase
   const supabase = supabase.createClient(
     "YOUR_SUPABASE_URL",
     "YOUR_SUPABASE_ANON_KEY"
   );
 
-  // 2. Load properties
+  let allProperties = [];
+
+  // Load all properties
   async function loadProperties() {
     const { data, error } = await supabase
       .from("properties")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error loading properties:", error);
-      return;
-    }
+    if (error) return console.error(error);
 
+    allProperties = data;
+    renderProperties(data);
+  }
+
+  // Render cards
+  function renderProperties(list) {
     const container = document.getElementById("properties");
     container.innerHTML = "";
 
-    data.forEach((p) => {
-      const card = `
-        <div class="card flash-update">
-          <img src="${p.image_url || 'https://via.placeholder.com/400'}" alt="Property Image">
+    list.forEach((p) => {
+      container.innerHTML += `
+        <div class="card">
+          <img src="${p.image_url || 'https://via.placeholder.com/400'}">
           <div class="card-body">
             <div class="price">₹${p.price}</div>
-            <div class="location">${p.city}, ${p.state}</div>
-            <div class="details">${p.bhk} BHK • ${p.furnishing}</div>
+            <div class="location">${p.city}</div>
+            <div class="details">${p.type} • ${p.bhk} • ${p.furnishing}</div>
           </div>
         </div>
       `;
-      container.innerHTML += card;
     });
   }
 
-  // Initial load
-  loadProperties();
+  // Apply search filters
+  function applyFilters() {
+    let city = document.getElementById("searchCity").value.toLowerCase();
+    let type = document.getElementById("filterType").value;
+    let bhk = document.getElementById("filterBHK").value;
+    let budget = document.getElementById("filterBudget").value;
+    let furnishing = document.getElementById("filterFurnishing").value;
 
-  // 3. Realtime listener
+    let filtered = allProperties.filter((p) => {
+      return (
+        (city === "" || p.city.toLowerCase().includes(city)) &&
+        (type === "" || p.type === type) &&
+        (bhk === "" || p.bhk === bhk) &&
+        (budget === "" || p.price >= parseInt(budget)) &&
+        (furnishing === "" || p.furnishing === furnishing)
+      );
+    });
+
+    renderProperties(filtered);
+  }
+
+  // Realtime updates
   supabase
     .channel("properties-realtime")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "properties" },
-      (payload) => {
-        console.log("Realtime update:", payload);
-        loadProperties();
-      }
+      () => loadProperties()
     )
     .subscribe();
+
+  loadProperties();
 </script>
 
 </body>
