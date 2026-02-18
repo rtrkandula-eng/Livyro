@@ -26,90 +26,158 @@
 
     .container {
       max-width: 1100px;
-      margin: 20px auto;
-      padding: 10px;
+      margin: 20px auto 40px;
+      padding: 0 10px;
     }
 
-    /* Search Bar */
+    /* SEARCH BAR */
     .search-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      align-items: center;
     }
 
-    select, input {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
+    .input-group {
+      display: flex;
+      align-items: center;
+      background: #f3f0f8;
+      padding: 10px 14px;
+      border-radius: 50px;
+      border: 1px solid #e0d7f3;
+    }
+
+    .input-group .icon {
+      font-size: 18px;
+      margin-right: 10px;
+      color: #6a0dad;
+    }
+
+    .input-group input,
+    .input-group select {
+      border: none;
+      background: transparent;
+      outline: none;
       width: 100%;
+      font-size: 14px;
+      font-family: "Poppins";
     }
 
-    button {
-      padding: 12px;
+    .search-btn {
       background: #6a0dad;
       color: white;
+      padding: 14px 20px;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 50px;
       font-size: 16px;
       font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
-    button:hover {
+    .search-btn:hover {
       background: #5800b0;
+      transform: translateY(-2px);
     }
 
-    /* Property Cards */
+    /* PROPERTY GRID */
     .properties {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
     }
 
+    /* PREMIUM CARD */
     .card {
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: 0.3s;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      transition: 0.25s ease;
+      display: flex;
+      flex-direction: column;
     }
 
     .card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-6px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
     }
 
-    .card img {
+    .card-img {
+      position: relative;
+    }
+
+    .card-img img {
       width: 100%;
-      height: 180px;
+      height: 200px;
       object-fit: cover;
     }
 
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #6a0dad;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
     .card-body {
-      padding: 15px;
+      padding: 18px;
     }
 
     .price {
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
       color: #6a0dad;
+      margin-bottom: 8px;
     }
 
     .location {
       font-size: 14px;
       color: #555;
-      margin-top: 5px;
+      margin-bottom: 12px;
     }
 
     .details {
-      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       font-size: 14px;
       color: #333;
+      margin-bottom: 16px;
+    }
+
+    .details span {
+      background: #f3f0f8;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .view-btn {
+      width: 100%;
+      padding: 12px;
+      background: #6a0dad;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .view-btn:hover {
+      background: #5800b0;
     }
   </style>
 </head>
@@ -120,54 +188,65 @@
 
 <div class="container">
 
-  <!-- SEARCH FILTERS -->
+  <!-- PREMIUM SEARCH BAR -->
   <div class="search-box">
 
-    <!-- City Search -->
-    <input type="text" id="searchCity" placeholder="Search any city in India...">
+    <div class="input-group">
+      <span class="icon">📍</span>
+      <input type="text" id="searchCity" placeholder="Search city (All India)">
+    </div>
 
-    <!-- Property Type -->
-    <select id="filterType">
-      <option value="">Property Type</option>
-      <option value="Apartment">Apartment</option>
-      <option value="Villa">Villa</option>
-      <option value="Independent House">Independent House</option>
-      <option value="Studio">Studio</option>
-      <option value="Penthouse">Penthouse</option>
-    </select>
+    <div class="input-group">
+      <span class="icon">🏠</span>
+      <select id="filterType">
+        <option value="">Property Type</option>
+        <option value="Apartment">Apartment</option>
+        <option value="Villa">Villa</option>
+        <option value="Independent House">Independent House</option>
+        <option value="Studio">Studio</option>
+        <option value="Penthouse">Penthouse</option>
+      </select>
+    </div>
 
-    <!-- BHK -->
-    <select id="filterBHK">
-      <option value="">BHK</option>
-      <option value="1 BHK">1 BHK</option>
-      <option value="2 BHK">2 BHK</option>
-      <option value="3 BHK">3 BHK</option>
-      <option value="4 BHK">4 BHK</option>
-      <option value="5 BHK">5 BHK</option>
-    </select>
+    <div class="input-group">
+      <span class="icon">🛏️</span>
+      <select id="filterBHK">
+        <option value="">BHK</option>
+        <option value="1 BHK">1 BHK</option>
+        <option value="2 BHK">2 BHK</option>
+        <option value="3 BHK">3 BHK</option>
+        <option value="4 BHK">4 BHK</option>
+        <option value="5 BHK">5 BHK</option>
+      </select>
+    </div>
 
-    <!-- Budget -->
-    <select id="filterBudget">
-      <option value="">Budget</option>
-      <option value="1000">₹1,000+</option>
-      <option value="5000">₹5,000+</option>
-      <option value="10000">₹10,000+</option>
-      <option value="20000">₹20,000+</option>
-      <option value="50000">₹50,000+</option>
-      <option value="100000">₹1,00,000+</option>
-      <option value="200000">₹2,00,000+</option>
-      <option value="500000">₹5,00,000+</option>
-    </select>
+    <div class="input-group">
+      <span class="icon">💰</span>
+      <select id="filterBudget">
+        <option value="">Budget</option>
+        <option value="1000">₹1,000+</option>
+        <option value="5000">₹5,000+</option>
+        <option value="10000">₹10,000+</option>
+        <option value="20000">₹20,000+</option>
+        <option value="50000">₹50,000+</option>
+        <option value="100000">₹1,00,000+</option>
+        <option value="200000">₹2,00,000+</option>
+        <option value="500000">₹5,00,000+</option>
+      </select>
+    </div>
 
-    <!-- Furnishing -->
-    <select id="filterFurnishing">
-      <option value="">Furnishing</option>
-      <option value="Fully Furnished">Fully Furnished</option>
-      <option value="Semi Furnished">Semi Furnished</option>
-      <option value="Unfurnished">Unfurnished</option>
-    </select>
+    <div class="input-group">
+      <span class="icon">🛋️</span>
+      <select id="filterFurnishing">
+        <option value="">Furnishing</option>
+        <option value="Fully Furnished">Fully Furnished</option>
+        <option value="Semi Furnished">Semi Furnished</option>
+        <option value="Unfurnished">Unfurnished</option>
+      </select>
+    </div>
 
-    <button onclick="applyFilters()">Search</button>
+    <button class="search-btn" onclick="applyFilters()">Search</button>
+
   </div>
 
   <!-- PROPERTY LIST -->
@@ -178,46 +257,59 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  const supabase = supabase.createClient(
-    "YOUR_SUPABASE_URL",
-    "YOUR_SUPABASE_ANON_KEY"
+  const supabaseClient = supabase.createClient(
+    "https://ehzwbbypvccuhfhvukpp.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI"
   );
 
   let allProperties = [];
 
-  // Load all properties
   async function loadProperties() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("properties")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) return console.error(error);
+    if (error) {
+      console.error("Error loading properties:", error);
+      return;
+    }
 
     allProperties = data;
     renderProperties(data);
   }
 
-  // Render cards
   function renderProperties(list) {
     const container = document.getElementById("properties");
     container.innerHTML = "";
 
+    if (!list || list.length === 0) {
+      container.innerHTML = "<p>No properties found.</p>";
+      return;
+    }
+
     list.forEach((p) => {
       container.innerHTML += `
         <div class="card">
-          <img src="${p.image_url || 'https://via.placeholder.com/400'}">
+          <div class="card-img">
+            <img src="${p.image_url || 'https://via.placeholder.com/400'}" alt="Property">
+            <span class="badge">Verified</span>
+          </div>
           <div class="card-body">
             <div class="price">₹${p.price}</div>
-            <div class="location">${p.city}</div>
-            <div class="details">${p.type} • ${p.bhk} • ${p.furnishing}</div>
+            <div class="location">📍 ${(p.city || "")}${p.state ? ", " + p.state : ""}</div>
+            <div class="details">
+              <span>🛏️ ${p.bhk || "N/A"}</span>
+              <span>🏠 ${p.type || "Property"}</span>
+              <span>🛋️ ${p.furnishing || "N/A"}</span>
+            </div>
+            <button class="view-btn">View Details</button>
           </div>
         </div>
       `;
     });
   }
 
-  // Apply search filters
   function applyFilters() {
     let city = document.getElementById("searchCity").value.toLowerCase();
     let type = document.getElementById("filterType").value;
@@ -227,10 +319,10 @@
 
     let filtered = allProperties.filter((p) => {
       return (
-        (city === "" || p.city.toLowerCase().includes(city)) &&
+        (city === "" || (p.city || "").toLowerCase().includes(city)) &&
         (type === "" || p.type === type) &&
         (bhk === "" || p.bhk === bhk) &&
-        (budget === "" || p.price >= parseInt(budget)) &&
+        (budget === "" || (p.price || 0) >= parseInt(budget)) &&
         (furnishing === "" || p.furnishing === furnishing)
       );
     });
@@ -238,8 +330,7 @@
     renderProperties(filtered);
   }
 
-  // Realtime updates
-  supabase
+  supabaseClient
     .channel("properties-realtime")
     .on(
       "postgres_changes",
