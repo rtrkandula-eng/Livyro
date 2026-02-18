@@ -8,18 +8,19 @@
 
 <style>
 body {
-    background: #f5f0ff;
+    background: #f3e5ff;
     font-family: Arial, sans-serif;
 }
 
 .box {
     max-width: 450px;
-    margin: 50px auto;
+    margin: 60px auto;
     padding: 30px;
     background: #fff;
     border-radius: 20px;
-    box-shadow: 0 6px 25px rgba(106, 13, 173, 0.15);
+    box-shadow: 0 8px 30px rgba(106, 13, 173, 0.1);
     border-top: 6px solid #6A0DAD;
+    position: relative;
 }
 
 .box h2 {
@@ -45,6 +46,7 @@ body {
     border: none;
     cursor: pointer;
     margin-top: 10px;
+    font-size: 1em;
 }
 
 .link {
@@ -52,16 +54,17 @@ body {
     margin-top: 12px;
     color: #6A0DAD;
     cursor: pointer;
+    font-size: 0.95em;
 }
 
 .autocomplete-suggestions {
     border: 1px solid #ddd;
-    max-height: 180px;
+    max-height: 200px;
     overflow-y: auto;
     background: #fff;
     position: absolute;
     z-index: 1000;
-    width: 100%;
+    width: calc(100% - 24px);
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
@@ -82,6 +85,29 @@ body {
 .autocomplete-suggestions div:hover {
     background: #f0e5ff;
 }
+
+.selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.selected-tags div {
+    background: #e0c3ff;
+    color: #6A0DAD;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+}
+
+.selected-tags div span {
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
 </style>
 </head>
 
@@ -97,6 +123,7 @@ body {
     <div id="city-suggestions" class="autocomplete-suggestions"></div>
 
     <input type="text" id="locality" placeholder="Locality / Landmark">
+    <div class="selected-tags" id="selected-localities"></div>
     <div id="locality-suggestions" class="autocomplete-suggestions"></div>
 
     <button class="btn" id="loginBtn">Login</button>
@@ -142,16 +169,19 @@ const data = [
   { type: 'landmark', name: 'Victoria Memorial' }
 ];
 
-// Generic autocomplete function
-function autocomplete(input, dataType) {
+// Autocomplete function
+function autocomplete(input, dataType, multiSelect=false) {
     const suggestionBox = document.getElementById(dataType + '-suggestions');
+    const selectedTagsContainer = document.getElementById('selected-localities');
+
     input.addEventListener('input', () => {
         const val = input.value.toLowerCase();
         suggestionBox.innerHTML = '';
         if (!val) return;
 
         const filtered = data.filter(item => 
-            item.type === dataType && item.name.toLowerCase().includes(val)
+            (item.type === dataType || (multiSelect && item.type==='landmark')) 
+            && item.name.toLowerCase().includes(val)
         );
 
         filtered.forEach(item => {
@@ -159,12 +189,25 @@ function autocomplete(input, dataType) {
             let icon = '🏙️';
             if(item.type === 'locality') icon = '🏘️';
             if(item.type === 'landmark') icon = '🏛️';
-
             div.innerHTML = `${icon} <span>${item.name}</span>`;
+
             div.addEventListener('click', () => {
-                input.value = item.name;
-                suggestionBox.innerHTML = '';
+                if(multiSelect){
+                    if(!Array.from(selectedTagsContainer.children).some(tag=>tag.dataset.value===item.name)){
+                        const tag = document.createElement('div');
+                        tag.dataset.value = item.name;
+                        tag.innerHTML = `${item.name} <span>&times;</span>`;
+                        tag.querySelector('span').addEventListener('click', ()=>tag.remove());
+                        selectedTagsContainer.appendChild(tag);
+                    }
+                    input.value = '';
+                    suggestionBox.innerHTML = '';
+                } else {
+                    input.value = item.name;
+                    suggestionBox.innerHTML = '';
+                }
             });
+
             suggestionBox.appendChild(div);
         });
     });
@@ -176,8 +219,7 @@ function autocomplete(input, dataType) {
 
 // Attach autocomplete
 autocomplete(document.getElementById('city'), 'city');
-autocomplete(document.getElementById('locality'), 'locality');
-autocomplete(document.getElementById('locality'), 'landmark'); // Include landmarks too
+autocomplete(document.getElementById('locality'), 'locality', true); // multi-select with landmarks
 
 // Supabase secure auth
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
