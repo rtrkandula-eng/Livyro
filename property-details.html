@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Property Details – Livyro</title>
 
+<!-- SUPABASE LOAD FIRST -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <style>
 body {
     margin: 0;
@@ -19,7 +22,6 @@ body {
     background: #ddd;
     border-bottom: 4px solid #6A0DAD;
 }
-
 .hero img {
     width: 100%;
     height: 320px;
@@ -35,10 +37,7 @@ body {
     gap: 30px;
 }
 
-/* LEFT SIDE */
-.left {
-    flex: 3;
-}
+.left { flex: 3; }
 
 .left h1 {
     font-size: 32px;
@@ -88,17 +87,6 @@ body {
     border-left: 6px solid #6A0DAD;
 }
 
-.contact-box h3 {
-    margin: 0;
-    font-size: 22px;
-    color: #6A0DAD;
-}
-
-.contact-box p {
-    font-size: 15px;
-    color: #555;
-}
-
 .contact-box button {
     width: 100%;
     padding: 12px;
@@ -110,235 +98,101 @@ body {
     margin-top: 12px;
     font-size: 16px;
 }
-
-/* SIMILAR PROPERTIES */
-.similar-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-}
-
-.similar-card {
-    background: #fff;
-    padding: 14px;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.12);
-}
-
-.similar-card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.similar-card h4 {
-    margin: 8px 0 4px;
-    color: #6A0DAD;
-}
 </style>
 </head>
 
 <body>
 
-<!-- HERO IMAGE -->
 <div class="hero">
-    <img id="heroImg" src="">
+<img id="heroImg" src="">
 </div>
 
-<!-- MAIN CONTENT -->
 <div class="container">
 
-    <!-- LEFT -->
-    <div class="left">
-        <h1 id="title">Loading...</h1>
+<div class="left">
+<h1 id="title">Loading...</h1>
 
-        <div class="detail-line" id="city"></div>
-        <div class="detail-line" id="bhk"></div>
-        <div class="detail-line" id="size"></div>
-        <div class="detail-line" id="rent"></div>
+<div class="detail-line" id="city"></div>
+<div class="detail-line" id="bhk"></div>
+<div class="detail-line" id="size"></div>
+<div class="detail-line" id="rent"></div>
 
-        <h2 class="section-title">Description</h2>
-        <p id="description"></p>
+<h2 class="section-title">Description</h2>
+<p id="description"></p>
 
-        <h2 class="section-title">Amenities</h2>
-        <div id="amenities" class="amenities"></div>
+<h2 class="section-title">Amenities</h2>
+<div id="amenities" class="amenities"></div>
 
-        <h2 class="section-title">Similar Properties</h2>
-        <div id="similarGrid" class="similar-grid"></div>
-    </div>
+<h2 class="section-title">Similar Properties</h2>
+<div id="similarGrid"></div>
+</div>
 
-    <!-- RIGHT -->
-    <div class="right">
-        <div class="contact-box">
-            <h3>Contact Owner</h3>
-            <p id="ownerName"></p>
-            <p id="ownerEmail"></p>
-            <p id="ownerPhone"></p>
+<div class="right">
+<div class="contact-box">
+<h3>Contact Owner</h3>
+<p id="ownerName"></p>
+<p id="ownerEmail"></p>
+<p id="ownerPhone"></p>
 
-            <button onclick="alert('Enquiry system active on Rentals page!')">
-                Send Enquiry
-            </button>
+<button onclick="alert('Enquiry system active on Rentals page!')">
+Send Enquiry
+</button>
 
-            <button id="saveBtn" style="margin-top:10px;background:#ff4da6;">♡ Save Home</button>
-        </div>
-    </div>
+<button id="saveBtn" style="margin-top:10px;background:#ff4da6;">
+♡ Save Home
+</button>
+</div>
+</div>
 
 </div>
 
 <script>
 // ---------------------------
-// SUPABASE CLIENT
+// SUPABASE CLIENT FIX
 // ---------------------------
-const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+if (!window.supabase) {
+  alert("Supabase not loaded. Check internet.");
+}
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey = "YOUR_ANON_KEY";
+
+const { createClient } = window.supabase;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ---------------------------
 // GET PROPERTY ID
 // ---------------------------
-const urlParams = new URLSearchParams(window.location.search);
-const propertyId = urlParams.get("id");
+const params = new URLSearchParams(window.location.search);
+const propertyId = params.get("id");
 
-// Tenant session
-const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
-const saveBtn = document.getElementById("saveBtn");
-
-// ---------------------------
-// LOAD PROPERTY DETAILS
-// ---------------------------
 async function loadProperty() {
-    const { data } = await supabase
-        .from("properties")
-        .select("*, owners(name, email, phone)")
-        .eq("id", propertyId)
-        .maybeSingle();
+const { data, error } = await supabase
+.from("properties")
+.select("*, owners(name,email,phone)")
+.eq("id", propertyId)
+.maybeSingle();
 
-    if (!data) return;
+if (error || !data) return;
 
-    const p = data;
+document.getElementById("title").textContent = data.title;
+document.getElementById("city").textContent = data.city;
+document.getElementById("bhk").textContent = data.bhk + " BHK";
+document.getElementById("size").textContent = data.size + " sqft";
+document.getElementById("rent").textContent = "₹" + data.rent;
+document.getElementById("description").textContent = data.description;
 
-    document.getElementById("heroImg").src = p.images?.[0] || "https://via.placeholder.com/1200x400";
-    document.getElementById("title").textContent = p.title;
-    document.getElementById("city").textContent = "📍 " + p.city;
-    document.getElementById("bhk").textContent = p.bhk + " BHK";
-    document.getElementById("size").textContent = p.size + " sqft";
-    document.getElementById("rent").textContent = "₹" + p.rent + " / month";
-    document.getElementById("description").textContent = p.description;
+document.getElementById("heroImg").src =
+data.images?.[0] || "https://via.placeholder.com/1200x400";
 
-    // Amenities
-    const amenityBox = document.getElementById("amenities");
-    if (p.amenities?.length) {
-        p.amenities.forEach(a => {
-            const tag = document.createElement("div");
-            tag.className = "amenity";
-            tag.textContent = a;
-            amenityBox.appendChild(tag);
-        });
-    } else {
-        amenityBox.innerHTML = "<p>No amenities listed.</p>";
-    }
-
-    // Owner
-    document.getElementById("ownerName").textContent = "👤 " + (p.owners?.name || "Unknown");
-    document.getElementById("ownerEmail").textContent = "📧 " + (p.owners?.email || "-");
-    document.getElementById("ownerPhone").textContent = "📞 " + (p.owners?.phone || "-");
-
-    loadSimilar(p.city, p.id);
-    checkSaved();
+document.getElementById("ownerName").textContent =
+data.owners?.name || "Unknown";
+document.getElementById("ownerEmail").textContent =
+data.owners?.email || "-";
+document.getElementById("ownerPhone").textContent =
+data.owners?.phone || "-";
 }
 
-// ---------------------------
-// LOAD SIMILAR PROPERTIES
-// ---------------------------
-async function loadSimilar(city, excludeId) {
-    const { data } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("city", city)
-        .neq("id", excludeId)
-        .limit(3);
-
-    const grid = document.getElementById("similarGrid");
-
-    if (!data.length) {
-        grid.innerHTML = "<p>No similar properties found.</p>";
-        return;
-    }
-
-    data.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "similar-card";
-
-        card.innerHTML = `
-            <img src="${p.images?.[0] || 'https://via.placeholder.com/300'}">
-            <h4>${p.title}</h4>
-            <p>${p.city} • ${p.size} sqft</p>
-            <p>₹${p.rent} / month</p>
-            <a href="property-details.html?id=${p.id}" style="color:#6A0DAD;font-weight:bold;">View</a>
-        `;
-
-        grid.appendChild(card);
-    });
-}
-
-// ---------------------------
-// CHECK IF SAVED
-// ---------------------------
-async function checkSaved() {
-    if (!tenant) return;
-
-    const { data } = await supabase
-        .from("saved_homes")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .eq("property_id", propertyId)
-        .maybeSingle();
-
-    if (data) {
-        saveBtn.textContent = "❤️ Saved";
-        saveBtn.style.background = "#d4006e";
-    }
-}
-
-// ---------------------------
-// SAVE / UNSAVE
-// ---------------------------
-saveBtn.addEventListener("click", async () => {
-    if (!tenant) {
-        alert("Please login as a tenant to save homes.");
-        window.location.href = "tenant-login.html";
-        return;
-    }
-
-    const { data: existing } = await supabase
-        .from("saved_homes")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .eq("property_id", propertyId)
-        .maybeSingle();
-
-    if (existing) {
-        await supabase.from("saved_homes").delete().eq("id", existing.id);
-        saveBtn.textContent = "♡ Save Home";
-        saveBtn.style.background = "#ff4da6";
-        return;
-    }
-
-    await supabase.from("saved_homes").insert({
-        tenant_id: tenant.id,
-        property_id: propertyId
-    });
-
-    saveBtn.textContent = "❤️ Saved";
-    saveBtn.style.background = "#d4006e";
-});
-
-// ---------------------------
-// INITIAL LOAD
-// ---------------------------
 loadProperty();
 </script>
 
