@@ -4,13 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Owner Dashboard – Livyro</title>
-<link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
 body {
     background: #f8f8f8;
-    font-family: Arial, sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .dashboard {
@@ -65,17 +64,22 @@ body {
     margin-bottom: 10px;
 }
 
-.property-card h3 {
-    margin-bottom: 6px;
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
 }
 
-.property-card p {
-    font-size: 14px;
-    color: #666;
+.edit-btn {
+    padding: 8px 14px;
+    background: #6A0DAD;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
 }
 
 .delete-btn {
-    margin-top: 10px;
     padding: 8px 14px;
     background: #ffdddd;
     color: #b30000;
@@ -84,6 +88,7 @@ body {
     font-size: 13px;
 }
 
+/* ADD PROPERTY BOX */
 .add-box {
     margin-top: 40px;
     padding: 20px;
@@ -110,6 +115,65 @@ body {
     cursor: pointer;
     border: none;
 }
+
+/* EDIT MODAL */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    width: 400px;
+    border-radius: 14px;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.save-btn {
+    background: #6A0DAD;
+    color: white;
+    padding: 12px;
+    width: 100%;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.close-btn {
+    text-align: right;
+    cursor: pointer;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* TOAST */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #6A0DAD;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    display: none;
+}
 </style>
 </head>
 
@@ -125,6 +189,7 @@ body {
     <h3 class="section-title">Your Properties</h3>
     <div id="propertyList" class="property-list"></div>
 
+    <!-- ADD PROPERTY -->
     <div class="add-box">
         <h3>Add New Property</h3>
 
@@ -147,13 +212,39 @@ body {
         <textarea id="description" placeholder="Description"></textarea>
 
         <input type="file" id="imageUpload" accept="image/*">
-        <p id="uploadStatus" style="font-size:14px;color:#666;"></p>
+        <p id="uploadStatus"></p>
 
         <button class="btn-primary" id="addBtn">Add Property</button>
-        <p id="addStatus" style="margin-top:10px;color:#666;"></p>
+        <p id="addStatus"></p>
     </div>
 
 </div>
+
+<!-- EDIT MODAL -->
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closeModal()">✖</div>
+
+        <h3>Edit Property</h3>
+
+        <input type="text" id="editCity">
+        <input type="number" id="editRent">
+        <input type="number" id="editSize">
+        <select id="editFurnishing">
+            <option>Fully Furnished</option>
+            <option>Semi Furnished</option>
+            <option>Unfurnished</option>
+        </select>
+        <textarea id="editDescription"></textarea>
+
+        <input type="file" id="editImageUpload" accept="image/*">
+        <img id="editPreview" style="width:100%;border-radius:8px;margin-bottom:10px;">
+
+        <button class="save-btn" onclick="saveChanges()">Save Changes</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
@@ -161,8 +252,17 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 let ownerId = null;
+let editingPropertyId = null;
 
-// CHECK LOGIN
+/* TOAST */
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2500);
+}
+
+/* CHECK LOGIN */
 async function checkSession() {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
@@ -174,26 +274,7 @@ async function checkSession() {
 }
 checkSession();
 
-// UPLOAD IMAGE
-async function uploadImage(file) {
-    const fileName = `${ownerId}-${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
-        .from("property-images")
-        .upload(fileName, file);
-
-    if (error) {
-        console.error(error);
-        return null;
-    }
-
-    const { data: urlData } = supabase.storage
-        .from("property-images")
-        .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
-}
-
-// LOAD PROPERTIES
+/* LOAD PROPERTIES */
 async function loadProperties() {
     const list = document.getElementById("propertyList");
     list.innerHTML = "Loading...";
@@ -223,20 +304,74 @@ async function loadProperties() {
             <h3>${p.title}</h3>
             <p>${p.city} • ${p.size} sqft</p>
             <p>₹${p.rent} / month</p>
-            <div class="delete-btn" data-id="${p.id}">Delete</div>
+
+            <div class="card-actions">
+                <div class="edit-btn" onclick='openEditModal(${JSON.stringify(p)})'>Edit</div>
+                <div class="delete-btn" onclick="deleteProperty('${p.id}')">Delete</div>
+            </div>
         `;
-        card.querySelector(".delete-btn").addEventListener("click", () => deleteProperty(p.id));
         list.appendChild(card);
     });
 }
 
-// DELETE PROPERTY
-async function deleteProperty(id) {
-    await supabase.from("properties").delete().eq("id", id);
+/* OPEN EDIT MODAL */
+function openEditModal(p) {
+    editingPropertyId = p.id;
+
+    document.getElementById("editCity").value = p.city;
+    document.getElementById("editRent").value = p.rent;
+    document.getElementById("editSize").value = p.size;
+    document.getElementById("editFurnishing").value = p.furnishing;
+    document.getElementById("editDescription").value = p.description;
+    document.getElementById("editPreview").src = p.images?.[0] || "";
+
+    document.getElementById("editModal").style.display = "flex";
+}
+
+/* CLOSE MODAL */
+function closeModal() {
+    document.getElementById("editModal").style.display = "none";
+}
+
+/* SAVE CHANGES */
+async function saveChanges() {
+    const city = document.getElementById("editCity").value;
+    const rent = parseInt(document.getElementById("editRent").value);
+    const size = parseInt(document.getElementById("editSize").value);
+    const furnishing = document.getElementById("editFurnishing").value;
+    const description = document.getElementById("editDescription").value;
+
+    let newImageUrl = null;
+    const file = document.getElementById("editImageUpload").files[0];
+
+    if (file) {
+        const fileName = `${ownerId}-${Date.now()}-${file.name}`;
+        await supabase.storage.from("property-images").upload(fileName, file);
+        const { data } = supabase.storage.from("property-images").getPublicUrl(fileName);
+        newImageUrl = data.publicUrl;
+    }
+
+    const updateData = {
+        city, rent, size, furnishing, description
+    };
+
+    if (newImageUrl) updateData.images = [newImageUrl];
+
+    await supabase.from("properties").update(updateData).eq("id", editingPropertyId);
+
+    closeModal();
+    showToast("Property updated!");
     loadProperties();
 }
 
-// ADD PROPERTY
+/* DELETE PROPERTY */
+async function deleteProperty(id) {
+    await supabase.from("properties").delete().eq("id", id);
+    showToast("Property deleted");
+    loadProperties();
+}
+
+/* ADD PROPERTY */
 document.getElementById("addBtn").addEventListener("click", async () => {
     const city = document.getElementById("city").value;
     const bhk = parseInt(document.getElementById("bhk").value);
@@ -246,20 +381,18 @@ document.getElementById("addBtn").addEventListener("click", async () => {
     const description = document.getElementById("description").value;
     const imageFile = document.getElementById("imageUpload").files[0];
 
-    const status = document.getElementById("addStatus");
-    const uploadStatus = document.getElementById("uploadStatus");
-
     let imageUrl = null;
 
     if (imageFile) {
-        uploadStatus.textContent = "Uploading image...";
-        imageUrl = await uploadImage(imageFile);
-        uploadStatus.textContent = imageUrl ? "Image uploaded!" : "Image upload failed.";
+        const fileName = `${ownerId}-${Date.now()}-${imageFile.name}`;
+        await supabase.storage.from("property-images").upload(fileName, imageFile);
+        const { data } = supabase.storage.from("property-images").getPublicUrl(fileName);
+        imageUrl = data.publicUrl;
     }
 
     const title = `${bhk} BHK • ${furnishing}`;
 
-    const { error } = await supabase.from("properties").insert({
+    await supabase.from("properties").insert({
         owner_id: ownerId,
         title,
         city,
@@ -272,15 +405,11 @@ document.getElementById("addBtn").addEventListener("click", async () => {
         images: imageUrl ? [imageUrl] : []
     });
 
-    if (error) {
-        status.textContent = "Error adding property.";
-    } else {
-        status.textContent = "Property added!";
-        loadProperties();
-    }
+    showToast("Property added!");
+    loadProperties();
 });
 
-// LOGOUT
+/* LOGOUT */
 document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "owner-login.html";
