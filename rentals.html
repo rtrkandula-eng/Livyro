@@ -45,6 +45,7 @@
     }
 
     .input-group {
+      position: relative;
       display: flex;
       align-items: center;
       background: #f3f0f8;
@@ -67,6 +68,31 @@
       width: 100%;
       font-size: 14px;
       font-family: "Poppins";
+    }
+
+    /* AUTOCOMPLETE DROPDOWN */
+    .suggestions {
+      position: absolute;
+      top: 48px;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 10;
+    }
+
+    .suggestions div {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .suggestions div:hover {
+      background: #f3f0f8;
     }
 
     .search-btn {
@@ -191,9 +217,11 @@
   <!-- PREMIUM SEARCH BAR -->
   <div class="search-box">
 
+    <!-- CITY AUTOCOMPLETE -->
     <div class="input-group">
       <span class="icon">📍</span>
-      <input type="text" id="searchCity" placeholder="Search city (All India)">
+      <input type="text" id="searchCity" placeholder="Search city (All India)" onkeyup="showCitySuggestions()">
+      <div id="citySuggestions" class="suggestions"></div>
     </div>
 
     <div class="input-group">
@@ -263,6 +291,44 @@
   );
 
   let allProperties = [];
+
+  const indianCities = [
+    "Hyderabad", "Bengaluru", "Mumbai", "Delhi", "Chennai", "Pune",
+    "Kolkata", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Indore",
+    "Kochi", "Coimbatore", "Nagpur", "Visakhapatnam", "Bhopal"
+  ];
+
+  function showCitySuggestions() {
+    let input = document.getElementById("searchCity").value.toLowerCase();
+    let box = document.getElementById("citySuggestions");
+
+    if (input.length < 1) {
+      box.style.display = "none";
+      return;
+    }
+
+    let matches = indianCities.filter(city =>
+      city.toLowerCase().startsWith(input)
+    );
+
+    if (matches.length === 0) {
+      box.style.display = "none";
+      return;
+    }
+
+    box.innerHTML = "";
+    matches.forEach(city => {
+      let div = document.createElement("div");
+      div.textContent = city;
+      div.onclick = () => {
+        document.getElementById("searchCity").value = city;
+        box.style.display = "none";
+      };
+      box.appendChild(div);
+    });
+
+    box.style.display = "block";
+  }
 
   async function loadProperties() {
     const { data, error } = await supabaseClient
