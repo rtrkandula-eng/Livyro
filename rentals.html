@@ -5,206 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rentals – Livyro</title>
 
-<!-- SUPABASE v2 -->
-<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!-- SUPABASE LOAD FIRST -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #faf7ff;
-}
-
-.header {
-    padding: 20px;
-    background: #6A0DAD;
-    color: #fff;
-    text-align: center;
-    font-size: 26px;
-    font-weight: bold;
-}
-
-.filters {
-    max-width: 1100px;
-    margin: 20px auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 0 20px;
-}
-
-.filters input,
-.filters select {
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #bbb;
-    font-size: 14px;
-}
-
-.grid {
-    max-width: 1100px;
-    margin: 20px auto;
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 22px;
-}
-
-.card {
-    background: #fff;
-    padding: 14px;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.12);
-}
-
-.card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.pagination {
-    max-width: 1100px;
-    margin: 30px auto;
-    text-align: center;
-}
-
-.pagination button {
-    padding: 10px 18px;
-    margin: 0 6px;
-    border: none;
-    background: #6A0DAD;
-    color: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-}
+body { margin:0; font-family:Arial; background:#faf7ff; }
+.header { padding:20px; background:#6A0DAD; color:#fff; text-align:center; font-size:26px; }
+.grid { max-width:1000px; margin:20px auto; display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+.card { background:#fff; padding:12px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
 </style>
 </head>
 
 <body>
 
 <div class="header">Livyro Rentals</div>
-
-<div class="filters">
-<input type="text" id="searchBox" placeholder="Search city or title...">
-
-<select id="bhkFilter">
-<option value="">BHK</option>
-<option value="1">1 BHK</option>
-<option value="2">2 BHK</option>
-<option value="3">3 BHK</option>
-<option value="4">4 BHK+</option>
-</select>
-
-<select id="rentFilter">
-<option value="">Rent Range</option>
-<option value="10000">Under ₹10,000</option>
-<option value="20000">Under ₹20,000</option>
-<option value="30000">Under ₹30,000</option>
-<option value="50000">Under ₹50,000</option>
-</select>
-</div>
-
 <div id="grid" class="grid"></div>
 
-<div class="pagination">
-<button id="prevBtn">Previous</button>
-<button id="nextBtn">Next</button>
-</div>
-
+<!-- YOUR SCRIPT AT BOTTOM -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+/* CHECK IF SUPABASE LOADED */
+if (!window.supabase) {
+  alert("Supabase not loaded. Check internet or script URL.");
+}
 
-const { createClient } = supabase;
+/* CREATE CLIENT */
+const { createClient } = window.supabase;
 
-// 🔹 YOUR SUPABASE DETAILS
 const supabaseClient = createClient(
   "https://ehzwbbypvccuhfhvukpp.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI"
 );
 
-let page = 0;
-const limit = 6;
-
 async function loadProperties() {
-const grid = document.getElementById("grid");
-grid.innerHTML = "Loading...";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "Loading...";
 
-let query = supabaseClient
-.from("properties")
-.select("*")
-.range(page * limit, page * limit + limit - 1);
+  const { data, error } = await supabaseClient
+    .from("properties")
+    .select("*")
+    .limit(6);
 
-const search = document.getElementById("searchBox").value.toLowerCase();
-const bhk = document.getElementById("bhkFilter").value;
-const rent = document.getElementById("rentFilter").value;
+  if (error) {
+    grid.innerHTML = "Error loading data";
+    console.error(error);
+    return;
+  }
 
-if (search) {
-query = query.or(`city.ilike.%${search}%,title.ilike.%${search}%`);
+  grid.innerHTML = "";
+
+  data.forEach(p => {
+    grid.innerHTML += `
+      <div class="card">
+        <h3>${p.title}</h3>
+        <p>${p.city}</p>
+        <p>₹${p.rent}</p>
+      </div>`;
+  });
 }
 
-if (bhk === "4") query = query.gte("bhk", 4);
-else if (bhk) query = query.eq("bhk", bhk);
-
-if (rent) query = query.lte("rent", rent);
-
-const { data, error } = await query;
-
-if (error) {
-grid.innerHTML = "Error loading properties";
-console.error(error);
-return;
-}
-
-if (!data || !data.length) {
-grid.innerHTML = "No properties found";
-return;
-}
-
-grid.innerHTML = "";
-
-data.forEach(p => {
-const img = p.images?.[0] || "https://via.placeholder.com/300";
-
-grid.innerHTML += `
-<div class="card">
-<img src="${img}" onerror="this.src='https://via.placeholder.com/300'">
-<h3>${p.title}</h3>
-<p>${p.city}</p>
-<p>₹${p.rent}</p>
-</div>`;
-});
-}
-
-document.getElementById("searchBox").addEventListener("input", () => {
-page = 0;
 loadProperties();
-});
-
-document.getElementById("bhkFilter").addEventListener("change", () => {
-page = 0;
-loadProperties();
-});
-
-document.getElementById("rentFilter").addEventListener("change", () => {
-page = 0;
-loadProperties();
-});
-
-document.getElementById("nextBtn").addEventListener("click", () => {
-page++;
-loadProperties();
-});
-
-document.getElementById("prevBtn").addEventListener("click", () => {
-if (page > 0) page--;
-loadProperties();
-});
-
-loadProperties();
-
-});
 </script>
 
 </body>
