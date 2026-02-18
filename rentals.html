@@ -3,66 +3,316 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rentals – Livyro</title>
+<title>Livyro Rentals – Find Your Home</title>
 
-<!-- SUPABASE LOAD FIRST -->
+<!-- SUPABASE -->
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
+<!-- STYLES -->
 <style>
-body { margin:0; font-family:Arial; background:#faf7ff; }
-.header { padding:20px; background:#6A0DAD; color:#fff; text-align:center; font-size:26px; }
-.grid { max-width:1000px; margin:20px auto; display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
-.card { background:#fff; padding:12px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: #f9f7ff;
+    color: #333;
+}
+
+/* HEADER */
+.header {
+    background: linear-gradient(90deg,#6A0DAD,#8e2de2);
+    color: #fff;
+    text-align: center;
+    padding: 24px;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* FILTERS */
+.filters {
+    max-width: 1200px;
+    margin: 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0 20px;
+    justify-content: center;
+}
+
+.filters input, .filters select {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    font-size: 14px;
+    min-width: 140px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.filters input:focus, .filters select:focus {
+    border-color: #6A0DAD;
+    box-shadow: 0 0 8px rgba(106,13,173,0.2);
+}
+
+/* PROPERTY GRID */
+.grid {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(106,13,173,0.12);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(106,13,173,0.18);
+}
+
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-body h3 {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    color: #6A0DAD;
+}
+
+.card-body p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.save-btn {
+    cursor: pointer;
+    font-size: 22px;
+    color: #6A0DAD;
+    transition: transform 0.2s ease;
+}
+
+.save-btn:hover {
+    transform: scale(1.2);
+}
+
+/* PAGINATION */
+.pagination {
+    max-width: 1200px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+.pagination button {
+    padding: 10px 18px;
+    margin: 0 6px;
+    border: none;
+    background: #6A0DAD;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pagination button:hover {
+    background: #8e2de2;
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">Livyro Rentals</div>
+
+<!-- FILTERS -->
+<div class="filters">
+    <input type="text" id="searchBox" placeholder="Search by city or title...">
+    <select id="bhkFilter">
+        <option value="">BHK</option>
+        <option value="1">1 BHK</option>
+        <option value="2">2 BHK</option>
+        <option value="3">3 BHK</option>
+        <option value="4">4 BHK+</option>
+    </select>
+    <select id="furnishingFilter">
+        <option value="">Furnishing</option>
+        <option>Fully Furnished</option>
+        <option>Semi Furnished</option>
+        <option>Unfurnished</option>
+    </select>
+    <select id="rentFilter">
+        <option value="">Rent Range</option>
+        <option value="10000">Under ₹10,000</option>
+        <option value="20000">Under ₹20,000</option>
+        <option value="30000">Under ₹30,000</option>
+        <option value="50000">Under ₹50,000</option>
+    </select>
+</div>
+
+<!-- PROPERTY GRID -->
 <div id="grid" class="grid"></div>
 
-<!-- YOUR SCRIPT AT BOTTOM -->
+<!-- PAGINATION -->
+<div class="pagination">
+    <button id="prevBtn">Previous</button>
+    <button id="nextBtn">Next</button>
+</div>
+
 <script>
-/* CHECK IF SUPABASE LOADED */
-if (!window.supabase) {
-  alert("Supabase not loaded. Check internet or script URL.");
-}
-
-/* CREATE CLIENT */
+// ---------------------------
+// SUPABASE CLIENT
+// ---------------------------
+const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
 const { createClient } = window.supabase;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const supabaseClient = createClient(
-  "https://ehzwbbypvccuhfhvukpp.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI"
-);
+// ---------------------------
+// GLOBALS
+// ---------------------------
+let page = 0;
+const limit = 8;
+const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
 
+// ---------------------------
+// LOAD PROPERTIES
+// ---------------------------
 async function loadProperties() {
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "Loading...";
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "<p>Loading properties...</p>";
 
-  const { data, error } = await supabaseClient
-    .from("properties")
-    .select("*")
-    .limit(6);
+    let query = supabase.from("properties").select("*").range(page*limit, page*limit + limit -1);
 
-  if (error) {
-    grid.innerHTML = "Error loading data";
-    console.error(error);
-    return;
-  }
+    // FILTERS
+    const search = document.getElementById("searchBox").value.toLowerCase();
+    const bhk = document.getElementById("bhkFilter").value;
+    const furnishing = document.getElementById("furnishingFilter").value;
+    const rent = document.getElementById("rentFilter").value;
 
-  grid.innerHTML = "";
+    if(search) query = query.ilike("city", `%${search}%`);
+    if(bhk) query = query.eq("bhk", bhk);
+    if(furnishing) query = query.eq("furnishing", furnishing);
+    if(rent) query = query.lte("rent", rent);
 
-  data.forEach(p => {
-    grid.innerHTML += `
-      <div class="card">
-        <h3>${p.title}</h3>
-        <p>${p.city}</p>
-        <p>₹${p.rent}</p>
-      </div>`;
-  });
+    const { data } = await query;
+
+    if(!data || !data.length){
+        grid.innerHTML = "<p>No properties found.</p>";
+        return;
+    }
+
+    grid.innerHTML = "";
+
+    data.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = p.images?.[0] || "https://via.placeholder.com/300";
+
+        card.innerHTML = `
+            <img src="${img}">
+            <div class="card-body">
+                <h3>${p.title}</h3>
+                <p>📍 ${p.city} • ${p.size} sqft • ${p.bhk} BHK</p>
+                <p>₹${p.rent}/month</p>
+                <div class="card-footer">
+                    <a href="property-details.html?id=${p.id}" style="color:#6A0DAD;font-weight:bold;">View</a>
+                    <span class="save-btn" onclick="toggleSave('${p.id}', this)">♡</span>
+                </div>
+            </div>
+        `;
+
+        grid.appendChild(card);
+
+        if(tenant) markSaved(p.id);
+    });
 }
 
+// ---------------------------
+// SAVE / UNSAVE
+// ---------------------------
+async function toggleSave(propertyId, element){
+    if(!tenant){
+        alert("Login to save homes.");
+        window.location.href = "tenant-login.html";
+        return;
+    }
+
+    const { data: existing } = await supabase
+        .from("saved_homes")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("property_id", propertyId)
+        .maybeSingle();
+
+    if(existing){
+        await supabase.from("saved_homes").delete().eq("id", existing.id);
+        element.textContent = "♡";
+        return;
+    }
+
+    await supabase.from("saved_homes").insert({ tenant_id: tenant.id, property_id: propertyId });
+    element.textContent = "❤️";
+}
+
+// ---------------------------
+// MARK SAVED HOMES
+// ---------------------------
+async function markSaved(propertyId){
+    const { data } = await supabase
+        .from("saved_homes")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("property_id", propertyId)
+        .maybeSingle();
+
+    if(data){
+        const btn = document.querySelector(`.save-btn[onclick="toggleSave('${propertyId}', this)"]`);
+        if(btn) btn.textContent = "❤️";
+    }
+}
+
+// ---------------------------
+// EVENTS
+// ---------------------------
+document.getElementById("searchBox").addEventListener("input", ()=> { page=0; loadProperties(); });
+document.getElementById("bhkFilter").addEventListener("change", loadProperties);
+document.getElementById("furnishingFilter").addEventListener("change", loadProperties);
+document.getElementById("rentFilter").addEventListener("change", loadProperties);
+
+document.getElementById("nextBtn").addEventListener("click", ()=> { page++; loadProperties(); });
+document.getElementById("prevBtn").addEventListener("click", ()=> { if(page>0) page--; loadProperties(); });
+
+// ---------------------------
+// INITIAL LOAD
+// ---------------------------
 loadProperties();
 </script>
 
