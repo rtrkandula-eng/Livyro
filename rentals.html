@@ -13,12 +13,12 @@ body {
 }
 
 .box {
-    max-width: 420px;
+    max-width: 450px;
     margin: 50px auto;
     padding: 30px;
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(106, 13, 173, 0.15);
+    border-radius: 20px;
+    box-shadow: 0 6px 25px rgba(106, 13, 173, 0.15);
     border-top: 6px solid #6A0DAD;
 }
 
@@ -44,6 +44,7 @@ body {
     color: #fff;
     border: none;
     cursor: pointer;
+    margin-top: 10px;
 }
 
 .link {
@@ -55,18 +56,27 @@ body {
 
 .autocomplete-suggestions {
     border: 1px solid #ddd;
-    max-height: 150px;
+    max-height: 180px;
     overflow-y: auto;
     background: #fff;
     position: absolute;
     z-index: 1000;
     width: 100%;
-    border-radius: 8px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .autocomplete-suggestions div {
     padding: 8px 12px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.autocomplete-suggestions div span {
+    margin-left: 8px;
+    font-size: 0.95em;
+    color: #555;
 }
 
 .autocomplete-suggestions div:hover {
@@ -95,45 +105,81 @@ body {
 </div>
 
 <script>
-// Example static data
-const cities = ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco", "Miami", "Boston"];
-const localities = ["Times Square", "Hollywood", "Millennium Park", "Space Center Houston", "Golden Gate Bridge", "South Beach", "Fenway Park"];
+// Hyderabad-focused dataset
+const data = [
+  // Cities
+  { type: 'city', name: 'Hyderabad' },
+  { type: 'city', name: 'Mumbai' },
+  { type: 'city', name: 'Bengaluru' },
+  { type: 'city', name: 'Delhi' },
+  { type: 'city', name: 'Chennai' },
+  { type: 'city', name: 'Kolkata' },
 
-// Simple autocomplete function
-function autocomplete(input, suggestionsArray, suggestionBoxId) {
-    const suggestionBox = document.getElementById(suggestionBoxId);
+  // Localities Hyderabad
+  { type: 'locality', name: 'Banjara Hills' },
+  { type: 'locality', name: 'Jubilee Hills' },
+  { type: 'locality', name: 'Gachibowli' },
+  { type: 'locality', name: 'Hitech City' },
+  { type: 'locality', name: 'Secunderabad' },
 
-    input.addEventListener("input", () => {
+  // Landmarks Hyderabad
+  { type: 'landmark', name: 'Charminar' },
+  { type: 'landmark', name: 'Golconda Fort' },
+  { type: 'landmark', name: 'Hussain Sagar' },
+  { type: 'landmark', name: 'Ramoji Film City' },
+  { type: 'landmark', name: 'Salar Jung Museum' },
+
+  // Other localities / landmarks India
+  { type: 'locality', name: 'Andheri' },
+  { type: 'locality', name: 'Koramangala' },
+  { type: 'locality', name: 'Connaught Place' },
+  { type: 'locality', name: 'T Nagar' },
+  { type: 'locality', name: 'Salt Lake' },
+  { type: 'landmark', name: 'Gateway of India' },
+  { type: 'landmark', name: 'Bangalore Palace' },
+  { type: 'landmark', name: 'India Gate' },
+  { type: 'landmark', name: 'Marina Beach' },
+  { type: 'landmark', name: 'Victoria Memorial' }
+];
+
+// Generic autocomplete function
+function autocomplete(input, dataType) {
+    const suggestionBox = document.getElementById(dataType + '-suggestions');
+    input.addEventListener('input', () => {
         const val = input.value.toLowerCase();
-        suggestionBox.innerHTML = "";
+        suggestionBox.innerHTML = '';
         if (!val) return;
 
-        const filtered = suggestionsArray.filter(item => item.toLowerCase().includes(val));
+        const filtered = data.filter(item => 
+            item.type === dataType && item.name.toLowerCase().includes(val)
+        );
+
         filtered.forEach(item => {
-            const div = document.createElement("div");
-            div.textContent = item;
-            div.addEventListener("click", () => {
-                input.value = item;
-                suggestionBox.innerHTML = "";
+            const div = document.createElement('div');
+            let icon = '🏙️';
+            if(item.type === 'locality') icon = '🏘️';
+            if(item.type === 'landmark') icon = '🏛️';
+
+            div.innerHTML = `${icon} <span>${item.name}</span>`;
+            div.addEventListener('click', () => {
+                input.value = item.name;
+                suggestionBox.innerHTML = '';
             });
             suggestionBox.appendChild(div);
         });
     });
 
-    // Close suggestions when clicking outside
-    document.addEventListener("click", (e) => {
-        if (e.target !== input) {
-            suggestionBox.innerHTML = "";
-        }
+    document.addEventListener('click', (e) => {
+        if(e.target !== input) suggestionBox.innerHTML = '';
     });
 }
 
 // Attach autocomplete
-autocomplete(document.getElementById("city"), cities, "city-suggestions");
-autocomplete(document.getElementById("locality"), localities, "locality-suggestions");
+autocomplete(document.getElementById('city'), 'city');
+autocomplete(document.getElementById('locality'), 'locality');
+autocomplete(document.getElementById('locality'), 'landmark'); // Include landmarks too
 
-
-// Supabase setup (secure auth)
+// Supabase secure auth
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
 const supabaseAnonKey = "YOUR_ANON_KEY_HERE";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
@@ -149,12 +195,10 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
         email: emailInput.value,
         password: passwordInput.value
     });
-
     if (error) {
         status.textContent = "Invalid credentials: " + error.message;
         return;
     }
-
     localStorage.setItem("livyro_tenant", JSON.stringify(data.user));
     window.location.href = "tenant-dashboard.html";
 });
@@ -166,7 +210,6 @@ document.getElementById("signupLink").addEventListener("click", async () => {
         email: emailInput.value,
         password: passwordInput.value
     });
-
     if (error) {
         status.textContent = "Signup failed: " + error.message;
     } else {
