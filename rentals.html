@@ -153,7 +153,10 @@ body {
 
 <!-- FILTERS -->
 <div class="filters">
-    <input type="text" id="searchBox" placeholder="Search by city or title...">
+    <select id="cityFilter">
+        <option value="">All Cities</option>
+    </select>
+    <input type="text" id="searchBox" placeholder="Search by title...">
     <select id="bhkFilter">
         <option value="">BHK</option>
         <option value="1">1 BHK</option>
@@ -202,6 +205,20 @@ const limit = 8;
 const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
 
 // ---------------------------
+// LIST OF INDIAN CITIES
+// ---------------------------
+const indianCities = ["Mumbai","Delhi","Bangalore","Chennai","Kolkata","Pune","Hyderabad","Ahmedabad","Jaipur","Lucknow","Kanpur","Nagpur","Indore","Bhopal","Patna","Vadodara","Surat","Ludhiana","Agra","Nashik","Faridabad","Rajkot","Meerut","Varanasi","Vasai","Amritsar","Jabalpur","Allahabad","Howrah","Gwalior","Vijayawada","Jodhpur","Madurai","Raipur","Kozhikode","Mangalore","Thiruvananthapuram"];
+
+// Populate city dropdown
+const citySelect = document.getElementById("cityFilter");
+indianCities.forEach(city => {
+    const opt = document.createElement("option");
+    opt.value = city;
+    opt.textContent = city;
+    citySelect.appendChild(opt);
+});
+
+// ---------------------------
 // LOAD PROPERTIES
 // ---------------------------
 async function loadProperties() {
@@ -210,13 +227,14 @@ async function loadProperties() {
 
     let query = supabase.from("properties").select("*").range(page*limit, page*limit + limit -1);
 
-    // FILTERS
+    const city = citySelect.value;
     const search = document.getElementById("searchBox").value.toLowerCase();
     const bhk = document.getElementById("bhkFilter").value;
     const furnishing = document.getElementById("furnishingFilter").value;
     const rent = document.getElementById("rentFilter").value;
 
-    if(search) query = query.ilike("city", `%${search}%`);
+    if(city) query = query.eq("city", city);
+    if(search) query = query.ilike("title", `%${search}%`);
     if(bhk) query = query.eq("bhk", bhk);
     if(furnishing) query = query.eq("furnishing", furnishing);
     if(rent) query = query.lte("rent", rent);
@@ -302,18 +320,18 @@ async function markSaved(propertyId){
 // ---------------------------
 // EVENTS
 // ---------------------------
-document.getElementById("searchBox").addEventListener("input", ()=> { page=0; loadProperties(); });
-document.getElementById("bhkFilter").addEventListener("change", loadProperties);
-document.getElementById("furnishingFilter").addEventListener("change", loadProperties);
-document.getElementById("rentFilter").addEventListener("change", loadProperties);
-
-document.getElementById("nextBtn").addEventListener("click", ()=> { page++; loadProperties(); });
-document.getElementById("prevBtn").addEventListener("click", ()=> { if(page>0) page--; loadProperties(); });
+[ "searchBox","cityFilter","bhkFilter","furnishingFilter","rentFilter" ].forEach(id => {
+    document.getElementById(id).addEventListener("change", ()=>{ page=0; loadProperties(); });
+});
+document.getElementById("searchBox").addEventListener("input", ()=>{ page=0; loadProperties(); });
+document.getElementById("nextBtn").addEventListener("click", ()=>{ page++; loadProperties(); });
+document.getElementById("prevBtn").addEventListener("click", ()=>{ if(page>0) page--; loadProperties(); });
 
 // ---------------------------
 // INITIAL LOAD
 // ---------------------------
 loadProperties();
+
 </script>
 
 </body>
