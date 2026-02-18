@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rentals – Livyro</title>
 
+<!-- SUPABASE v2 -->
+<script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <style>
 body {
     margin: 0;
@@ -12,7 +15,6 @@ body {
     background: #faf7ff;
 }
 
-/* HEADER */
 .header {
     padding: 20px;
     background: #6A0DAD;
@@ -22,7 +24,6 @@ body {
     font-weight: bold;
 }
 
-/* FILTER BAR */
 .filters {
     max-width: 1100px;
     margin: 20px auto;
@@ -40,7 +41,6 @@ body {
     font-size: 14px;
 }
 
-/* PROPERTY GRID */
 .grid {
     max-width: 1100px;
     margin: 20px auto;
@@ -64,17 +64,6 @@ body {
     border-radius: 10px;
 }
 
-.card h3 {
-    margin: 8px 0 4px;
-    color: #6A0DAD;
-}
-
-.card p {
-    margin: 4px 0;
-    color: #555;
-}
-
-/* PAGINATION */
 .pagination {
     max-width: 1100px;
     margin: 30px auto;
@@ -97,187 +86,125 @@ body {
 
 <div class="header">Livyro Rentals</div>
 
-<!-- FILTERS -->
 <div class="filters">
-    <input type="text" id="searchBox" placeholder="Search city or title...">
-    <select id="bhkFilter">
-        <option value="">BHK</option>
-        <option value="1">1 BHK</option>
-        <option value="2">2 BHK</option>
-        <option value="3">3 BHK</option>
-        <option value="4">4 BHK+</option>
-    </select>
-    <select id="furnishingFilter">
-        <option value="">Furnishing</option>
-        <option>Fully Furnished</option>
-        <option>Semi Furnished</option>
-        <option>Unfurnished</option>
-    </select>
-    <select id="rentFilter">
-        <option value="">Rent Range</option>
-        <option value="10000">Under ₹10,000</option>
-        <option value="20000">Under ₹20,000</option>
-        <option value="30000">Under ₹30,000</option>
-        <option value="50000">Under ₹50,000</option>
-    </select>
+<input type="text" id="searchBox" placeholder="Search city or title...">
+
+<select id="bhkFilter">
+<option value="">BHK</option>
+<option value="1">1 BHK</option>
+<option value="2">2 BHK</option>
+<option value="3">3 BHK</option>
+<option value="4">4 BHK+</option>
+</select>
+
+<select id="rentFilter">
+<option value="">Rent Range</option>
+<option value="10000">Under ₹10,000</option>
+<option value="20000">Under ₹20,000</option>
+<option value="30000">Under ₹30,000</option>
+<option value="50000">Under ₹50,000</option>
+</select>
 </div>
 
-<!-- PROPERTY GRID -->
 <div id="grid" class="grid"></div>
 
-<!-- PAGINATION -->
 <div class="pagination">
-    <button id="prevBtn">Previous</button>
-    <button id="nextBtn">Next</button>
+<button id="prevBtn">Previous</button>
+<button id="nextBtn">Next</button>
 </div>
 
 <script>
-// ---------------------------
-// SUPABASE CLIENT (ONLY ONCE)
-// ---------------------------
-const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
+document.addEventListener("DOMContentLoaded", () => {
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+const { createClient } = supabase;
 
-// ---------------------------
-// GLOBALS
-// ---------------------------
+// 🔹 YOUR SUPABASE DETAILS
+const supabaseClient = createClient(
+  "https://ehzwbbypvccuhfhvukpp.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI"
+);
+
 let page = 0;
 const limit = 6;
-const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
 
-// ---------------------------
-// LOAD PROPERTIES
-// ---------------------------
 async function loadProperties() {
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "Loading...";
+const grid = document.getElementById("grid");
+grid.innerHTML = "Loading...";
 
-    let query = supabase
-        .from("properties")
-        .select("*")
-        .range(page * limit, page * limit + limit - 1);
+let query = supabaseClient
+.from("properties")
+.select("*")
+.range(page * limit, page * limit + limit - 1);
 
-    // Filters
-    const search = document.getElementById("searchBox").value.toLowerCase();
-    const bhk = document.getElementById("bhkFilter").value;
-    const furnishing = document.getElementById("furnishingFilter").value;
-    const rent = document.getElementById("rentFilter").value;
+const search = document.getElementById("searchBox").value.toLowerCase();
+const bhk = document.getElementById("bhkFilter").value;
+const rent = document.getElementById("rentFilter").value;
 
-    if (search) query = query.ilike("city", `%${search}%`);
-    if (bhk) query = query.eq("bhk", bhk);
-    if (furnishing) query = query.eq("furnishing", furnishing);
-    if (rent) query = query.lte("rent", rent);
-
-    const { data } = await query;
-
-    if (!data || !data.length) {
-        grid.innerHTML = "<p>No properties found.</p>";
-        return;
-    }
-
-    grid.innerHTML = "";
-
-    data.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const img = p.images?.[0] || "https://via.placeholder.com/300";
-
-        card.innerHTML = `
-            <img src="${img}">
-            <h3>${p.title}</h3>
-            <p>${p.city} • ${p.size} sqft</p>
-            <p>₹${p.rent} / month</p>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                <a href="property-details.html?id=${p.id}" style="color:#6A0DAD;font-weight:bold;">View</a>
-                <span class="save-btn" onclick="toggleSave('${p.id}', this)" style="cursor:pointer;font-size:22px;color:#6A0DAD;">♡</span>
-            </div>
-        `;
-
-        grid.appendChild(card);
-
-        if (tenant) markSaved(p.id);
-    });
+if (search) {
+query = query.or(`city.ilike.%${search}%,title.ilike.%${search}%`);
 }
 
-// ---------------------------
-// SAVE / UNSAVE
-// ---------------------------
-async function toggleSave(propertyId, element) {
-    if (!tenant) {
-        alert("Please login as a tenant to save homes.");
-        window.location.href = "tenant-login.html";
-        return;
-    }
+if (bhk === "4") query = query.gte("bhk", 4);
+else if (bhk) query = query.eq("bhk", bhk);
 
-    const { data: existing } = await supabase
-        .from("saved_homes")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .eq("property_id", propertyId)
-        .maybeSingle();
+if (rent) query = query.lte("rent", rent);
 
-    if (existing) {
-        await supabase.from("saved_homes").delete().eq("id", existing.id);
-        element.textContent = "♡";
-        return;
-    }
+const { data, error } = await query;
 
-    await supabase.from("saved_homes").insert({
-        tenant_id: tenant.id,
-        property_id: propertyId
-    });
-
-    element.textContent = "❤️";
+if (error) {
+grid.innerHTML = "Error loading properties";
+console.error(error);
+return;
 }
 
-// ---------------------------
-// MARK SAVED HOMES
-// ---------------------------
-async function markSaved(propertyId) {
-    const { data } = await supabase
-        .from("saved_homes")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .eq("property_id", propertyId)
-        .maybeSingle();
-
-    if (data) {
-        const btn = document.querySelector(`.save-btn[onclick="toggleSave('${propertyId}', this)"]`);
-        if (btn) btn.textContent = "❤️";
-    }
+if (!data || !data.length) {
+grid.innerHTML = "No properties found";
+return;
 }
 
-// ---------------------------
-// EVENTS
-// ---------------------------
+grid.innerHTML = "";
+
+data.forEach(p => {
+const img = p.images?.[0] || "https://via.placeholder.com/300";
+
+grid.innerHTML += `
+<div class="card">
+<img src="${img}" onerror="this.src='https://via.placeholder.com/300'">
+<h3>${p.title}</h3>
+<p>${p.city}</p>
+<p>₹${p.rent}</p>
+</div>`;
+});
+}
+
 document.getElementById("searchBox").addEventListener("input", () => {
-    page = 0;
-    loadProperties();
+page = 0;
+loadProperties();
 });
 
-document.getElementById("bhkFilter").addEventListener("change", loadProperties);
-document.getElementById("furnishingFilter").addEventListener("change", loadProperties);
-document.getElementById("rentFilter").addEventListener("change", loadProperties);
+document.getElementById("bhkFilter").addEventListener("change", () => {
+page = 0;
+loadProperties();
+});
+
+document.getElementById("rentFilter").addEventListener("change", () => {
+page = 0;
+loadProperties();
+});
 
 document.getElementById("nextBtn").addEventListener("click", () => {
-    page++;
-    loadProperties();
+page++;
+loadProperties();
 });
 
 document.getElementById("prevBtn").addEventListener("click", () => {
-    if (page > 0) page--;
-    loadProperties();
+if (page > 0) page--;
+loadProperties();
 });
 
-// ---------------------------
-// INITIAL LOAD
-// ---------------------------
 loadProperties();
+
+});
 </script>
 
 </body>
