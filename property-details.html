@@ -148,14 +148,14 @@ Send Enquiry
 
 <script>
 // ---------------------------
-// SUPABASE CLIENT FIX
+// SUPABASE CLIENT
 // ---------------------------
 if (!window.supabase) {
   alert("Supabase not loaded. Check internet.");
 }
 
 const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey = "YOUR_ANON_KEY";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoendiYnlwdmNjdWhmaHZ1a3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNTQzMzMsImV4cCI6MjA4NjkzMDMzM30.JPsDBtJVw-lrlr8Y2ipioNQtc80DZ0v1wKcPtz0ixzI";
 
 const { createClient } = window.supabase;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -166,33 +166,129 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const params = new URLSearchParams(window.location.search);
 const propertyId = params.get("id");
 
+// Tenant session
+const tenant = JSON.parse(localStorage.getItem("livyro_tenant"));
+const saveBtn = document.getElementById("saveBtn");
+
+// ---------------------------
+// LOAD PROPERTY DETAILS
+// ---------------------------
 async function loadProperty() {
-const { data, error } = await supabase
-.from("properties")
-.select("*, owners(name,email,phone)")
-.eq("id", propertyId)
-.maybeSingle();
+    const { data, error } = await supabase
+        .from("properties")
+        .select("*, owners(name,email,phone)")
+        .eq("id", propertyId)
+        .maybeSingle();
 
-if (error || !data) return;
+    if (error || !data) return;
 
-document.getElementById("title").textContent = data.title;
-document.getElementById("city").textContent = data.city;
-document.getElementById("bhk").textContent = data.bhk + " BHK";
-document.getElementById("size").textContent = data.size + " sqft";
-document.getElementById("rent").textContent = "₹" + data.rent;
-document.getElementById("description").textContent = data.description;
+    const p = data;
 
-document.getElementById("heroImg").src =
-data.images?.[0] || "https://via.placeholder.com/1200x400";
+    document.getElementById("heroImg").src = p.images?.[0] || "https://via.placeholder.com/1200x400";
+    document.getElementById("title").textContent = p.title;
+    document.getElementById("city").textContent = p.city;
+    document.getElementById("bhk").textContent = p.bhk + " BHK";
+    document.getElementById("size").textContent = p.size + " sqft";
+    document.getElementById("rent").textContent = "₹" + p.rent;
+    document.getElementById("description").textContent = p.description;
 
-document.getElementById("ownerName").textContent =
-data.owners?.name || "Unknown";
-document.getElementById("ownerEmail").textContent =
-data.owners?.email || "-";
-document.getElementById("ownerPhone").textContent =
-data.owners?.phone || "-";
+    document.getElementById("ownerName").textContent = p.owners?.name || "Unknown";
+    document.getElementById("ownerEmail").textContent = p.owners?.email || "-";
+    document.getElementById("ownerPhone").textContent = p.owners?.phone || "-";
+
+    loadSimilar(p.city, p.id);
+    checkSaved();
 }
 
+// ---------------------------
+// LOAD SIMILAR PROPERTIES
+// ---------------------------
+async function loadSimilar(city, excludeId) {
+    const { data } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("city", city)
+        .neq("id", excludeId)
+        .limit(3);
+
+    const grid = document.getElementById("similarGrid");
+
+    if (!data || !data.length) {
+        grid.innerHTML = "<p>No similar properties found.</p>";
+        return;
+    }
+
+    data.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "similar-card";
+
+        card.innerHTML = `
+            <img src="${p.images?.[0] || 'https://via.placeholder.com/300'}">
+            <h4>${p.title}</h4>
+            <p>${p.city} • ${p.size} sqft</p>
+            <p>₹${p.rent} / month</p>
+            <a href="property-details.html?id=${p.id}" style="color:#6A0DAD;font-weight:bold;">View</a>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+// ---------------------------
+// CHECK IF SAVED
+// ---------------------------
+async function checkSaved() {
+    if (!tenant) return;
+
+    const { data } = await supabase
+        .from("saved_homes")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("property_id", propertyId)
+        .maybeSingle();
+
+    if (data) {
+        saveBtn.textContent = "❤️ Saved";
+        saveBtn.style.background = "#d4006e";
+    }
+}
+
+// ---------------------------
+// SAVE / UNSAVE
+// ---------------------------
+saveBtn.addEventListener("click", async () => {
+    if (!tenant) {
+        alert("Please login as a tenant to save homes.");
+        window.location.href = "tenant-login.html";
+        return;
+    }
+
+    const { data: existing } = await supabase
+        .from("saved_homes")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("property_id", propertyId)
+        .maybeSingle();
+
+    if (existing) {
+        await supabase.from("saved_homes").delete().eq("id", existing.id);
+        saveBtn.textContent = "♡ Save Home";
+        saveBtn.style.background = "#ff4da6";
+        return;
+    }
+
+    await supabase.from("saved_homes").insert({
+        tenant_id: tenant.id,
+        property_id: propertyId
+    });
+
+    saveBtn.textContent = "❤️ Saved";
+    saveBtn.style.background = "#d4006e";
+});
+
+// ---------------------------
+// INITIAL LOAD
+// ---------------------------
 loadProperty();
 </script>
 
