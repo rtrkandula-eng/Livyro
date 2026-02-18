@@ -1,263 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tenant Login – Livyro</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Livyro Rentals</title>
 
-<style>
-body {
-    background: #f3e5ff;
-    font-family: Arial, sans-serif;
-}
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-.box {
-    max-width: 450px;
-    margin: 60px auto;
-    padding: 30px;
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(106, 13, 173, 0.1);
-    border-top: 6px solid #6A0DAD;
-    position: relative;
-}
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Poppins", sans-serif;
+      background: #f5f7fa;
+    }
 
-.box h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #6A0DAD;
-}
+    header {
+      background: #1a73e8;
+      padding: 20px;
+      color: white;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+    }
 
-.box input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(148,163,184,0.6);
-}
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 10px;
+    }
 
-.btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 999px;
-    background: #6A0DAD;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 1em;
-}
+    .properties {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
 
-.link {
-    text-align: center;
-    margin-top: 12px;
-    color: #6A0DAD;
-    cursor: pointer;
-    font-size: 0.95em;
-}
+    .card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
 
-.autocomplete-suggestions {
-    border: 1px solid #ddd;
-    max-height: 200px;
-    overflow-y: auto;
-    background: #fff;
-    position: absolute;
-    z-index: 1000;
-    width: calc(100% - 24px);
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
+    .card:hover {
+      transform: translateY(-5px);
+    }
 
-.autocomplete-suggestions div {
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
 
-.autocomplete-suggestions div span {
-    margin-left: 8px;
-    font-size: 0.95em;
-    color: #555;
-}
+    .card-body {
+      padding: 15px;
+    }
 
-.autocomplete-suggestions div:hover {
-    background: #f0e5ff;
-}
+    .price {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a73e8;
+    }
 
-.selected-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
-}
+    .location {
+      font-size: 14px;
+      color: #555;
+      margin-top: 5px;
+    }
 
-.selected-tags div {
-    background: #e0c3ff;
-    color: #6A0DAD;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.85em;
-    display: flex;
-    align-items: center;
-}
+    .details {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
 
-.selected-tags div span {
-    margin-left: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-</style>
+    .flash-update {
+      animation: flash 0.4s ease;
+    }
+
+    @keyframes flash {
+      0% { background: #fff3cd; }
+      100% { background: white; }
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="box">
-    <h2>Tenant Login / Signup</h2>
+<header>Livyro Rentals</header>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-
-    <input type="text" id="city" placeholder="City">
-    <div id="city-suggestions" class="autocomplete-suggestions"></div>
-
-    <input type="text" id="locality" placeholder="Locality / Landmark">
-    <div class="selected-tags" id="selected-localities"></div>
-    <div id="locality-suggestions" class="autocomplete-suggestions"></div>
-
-    <button class="btn" id="loginBtn">Login</button>
-    <div class="link" id="signupLink">Create an account</div>
-    <p id="status" style="text-align:center;margin-top:10px;color:#555;"></p>
+<div class="container">
+  <div id="properties" class="properties"></div>
 </div>
 
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-// Hyderabad-focused dataset
-const data = [
-  // Cities
-  { type: 'city', name: 'Hyderabad' },
-  { type: 'city', name: 'Mumbai' },
-  { type: 'city', name: 'Bengaluru' },
-  { type: 'city', name: 'Delhi' },
-  { type: 'city', name: 'Chennai' },
-  { type: 'city', name: 'Kolkata' },
+  // 1. Connect to Supabase
+  const supabase = supabase.createClient(
+    "YOUR_SUPABASE_URL",
+    "YOUR_SUPABASE_ANON_KEY"
+  );
 
-  // Localities Hyderabad
-  { type: 'locality', name: 'Banjara Hills' },
-  { type: 'locality', name: 'Jubilee Hills' },
-  { type: 'locality', name: 'Gachibowli' },
-  { type: 'locality', name: 'Hitech City' },
-  { type: 'locality', name: 'Secunderabad' },
+  // 2. Load properties
+  async function loadProperties() {
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  // Landmarks Hyderabad
-  { type: 'landmark', name: 'Charminar' },
-  { type: 'landmark', name: 'Golconda Fort' },
-  { type: 'landmark', name: 'Hussain Sagar' },
-  { type: 'landmark', name: 'Ramoji Film City' },
-  { type: 'landmark', name: 'Salar Jung Museum' },
-
-  // Other localities / landmarks India
-  { type: 'locality', name: 'Andheri' },
-  { type: 'locality', name: 'Koramangala' },
-  { type: 'locality', name: 'Connaught Place' },
-  { type: 'locality', name: 'T Nagar' },
-  { type: 'locality', name: 'Salt Lake' },
-  { type: 'landmark', name: 'Gateway of India' },
-  { type: 'landmark', name: 'Bangalore Palace' },
-  { type: 'landmark', name: 'India Gate' },
-  { type: 'landmark', name: 'Marina Beach' },
-  { type: 'landmark', name: 'Victoria Memorial' }
-];
-
-// Autocomplete function
-function autocomplete(input, dataType, multiSelect=false) {
-    const suggestionBox = document.getElementById(dataType + '-suggestions');
-    const selectedTagsContainer = document.getElementById('selected-localities');
-
-    input.addEventListener('input', () => {
-        const val = input.value.toLowerCase();
-        suggestionBox.innerHTML = '';
-        if (!val) return;
-
-        const filtered = data.filter(item => 
-            (item.type === dataType || (multiSelect && item.type==='landmark')) 
-            && item.name.toLowerCase().includes(val)
-        );
-
-        filtered.forEach(item => {
-            const div = document.createElement('div');
-            let icon = '🏙️';
-            if(item.type === 'locality') icon = '🏘️';
-            if(item.type === 'landmark') icon = '🏛️';
-            div.innerHTML = `${icon} <span>${item.name}</span>`;
-
-            div.addEventListener('click', () => {
-                if(multiSelect){
-                    if(!Array.from(selectedTagsContainer.children).some(tag=>tag.dataset.value===item.name)){
-                        const tag = document.createElement('div');
-                        tag.dataset.value = item.name;
-                        tag.innerHTML = `${item.name} <span>&times;</span>`;
-                        tag.querySelector('span').addEventListener('click', ()=>tag.remove());
-                        selectedTagsContainer.appendChild(tag);
-                    }
-                    input.value = '';
-                    suggestionBox.innerHTML = '';
-                } else {
-                    input.value = item.name;
-                    suggestionBox.innerHTML = '';
-                }
-            });
-
-            suggestionBox.appendChild(div);
-        });
-    });
-
-    document.addEventListener('click', (e) => {
-        if(e.target !== input) suggestionBox.innerHTML = '';
-    });
-}
-
-// Attach autocomplete
-autocomplete(document.getElementById('city'), 'city');
-autocomplete(document.getElementById('locality'), 'locality', true); // multi-select with landmarks
-
-// Supabase secure auth
-const supabaseUrl = "https://ehzwbbypvccuhfhvukpp.supabase.co";
-const supabaseAnonKey = "YOUR_ANON_KEY_HERE";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const status = document.getElementById("status");
-
-// LOGIN
-document.getElementById("loginBtn").addEventListener("click", async () => {
-    status.textContent = "Checking...";
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
-    });
     if (error) {
-        status.textContent = "Invalid credentials: " + error.message;
-        return;
+      console.error("Error loading properties:", error);
+      return;
     }
-    localStorage.setItem("livyro_tenant", JSON.stringify(data.user));
-    window.location.href = "tenant-dashboard.html";
-});
 
-// SIGNUP
-document.getElementById("signupLink").addEventListener("click", async () => {
-    status.textContent = "Creating account...";
-    const { data, error } = await supabase.auth.signUp({
-        email: emailInput.value,
-        password: passwordInput.value
+    const container = document.getElementById("properties");
+    container.innerHTML = "";
+
+    data.forEach((p) => {
+      const card = `
+        <div class="card flash-update">
+          <img src="${p.image_url || 'https://via.placeholder.com/400'}" alt="Property Image">
+          <div class="card-body">
+            <div class="price">₹${p.price}</div>
+            <div class="location">${p.city}, ${p.state}</div>
+            <div class="details">${p.bhk} BHK • ${p.furnishing}</div>
+          </div>
+        </div>
+      `;
+      container.innerHTML += card;
     });
-    if (error) {
-        status.textContent = "Signup failed: " + error.message;
-    } else {
-        status.textContent = "Account created. Please login.";
-    }
-});
+  }
+
+  // Initial load
+  loadProperties();
+
+  // 3. Realtime listener
+  supabase
+    .channel("properties-realtime")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "properties" },
+      (payload) => {
+        console.log("Realtime update:", payload);
+        loadProperties();
+      }
+    )
+    .subscribe();
 </script>
+
 </body>
 </html>
